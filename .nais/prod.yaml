@@ -1,0 +1,54 @@
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: sf-henvendelse-db
+  namespace: teamnks
+  labels:
+    team: teamnks
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+spec:
+  image: '{{ image }}'
+  port: 8080
+  replicas:
+    min: 3
+    max: 6
+  liveness:
+    path: /internal/isAlive
+    initialDelay: 5
+    periodSeconds: 5
+    failureThreshold: 30
+  readiness:
+    path: /internal/isReady
+    initialDelay: 5
+    periodSeconds: 5
+    failureThreshold: 30
+  preStopHook:
+    exec:
+      command: [ "/bin/bash", "/pre-stop.sh" ]
+  terminationGracePeriodSeconds: 60
+  prometheus:
+    enabled: true
+    path: /internal/metrics
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 10m
+      memory: 512Mi
+  ingresses:
+    - "https://sf-henvendelse-db.nav.no"
+    - "https://sf-henvendelse-db.intern.nav.no"
+  azure:
+    application:
+      enabled: true
+      allowAllUsers: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: salesforce
+          namespace: teamcrm
+          cluster: prod-external
+  env:
+    - name: WHITELIST_FILE
+      value: '/whitelist/prod.json'
