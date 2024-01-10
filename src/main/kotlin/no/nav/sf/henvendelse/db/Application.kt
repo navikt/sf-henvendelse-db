@@ -36,6 +36,7 @@ object Application {
     fun start() {
         log.info { "Starting" }
         apiServer(NAIS_DEFAULT_PORT).start()
+        postgresDatabase.create()
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
