@@ -56,7 +56,7 @@ class PostgresDatabase {
             connectionTimeout = 250
             idleTimeout = 10001
             isAutoCommit = false
-            transactionIsolation = "READ_COMMITTED"
+            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
         }
     }
 
