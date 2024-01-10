@@ -29,6 +29,21 @@ class PostgresDatabase {
     // private val username = "dbName-user"
     private val dbUrl = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_URL")!!
 
+    private val host = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_HOST")!!
+    private val port = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_PORT")!!
+    private val name = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DATABASE")!!
+    private val user = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_USERNAME")!!
+    private val userpassword = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_PASSWORD")!!
+
+    /**
+     * hostname	NAIS_DATABASE_MYAPP_MYDB_HOST	127.0.0.1
+     port	NAIS_DATABASE_MYAPP_MYDB_PORT	5432
+     database name	NAIS_DATABASE_MYAPP_MYDB_DATABASE	.spec.gcp.sqlInstances[].databases[].name
+     database user	NAIS_DATABASE_MYAPP_MYDB_USERNAME	.spec.gcp.sqlInstances[].name
+     database password	NAIS_DATABASE_MYAPP_MYDB_PASSWORD	(randomly generated)
+     database url with credentials	NAIS_DATABASE_MYAPP_MYDB_URL	postgres://username:password@127.0.0.1:5432/mydb
+     */
+
     // val dataSource: HikariDataSource = dataSource()
     // val connection: Connection get() = dataSource.connection.apply { autoCommit = false }
 
@@ -49,8 +64,14 @@ class PostgresDatabase {
 
     private fun hikariConfig(): HikariConfig {
         return HikariConfig().apply {
-            jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
+            // jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
+            jdbcUrl = "jdbc:postgresql://"
             driverClassName = "org.postgresql.Driver"
+            addDataSourceProperty("serverName", host)
+            addDataSourceProperty("port", port)
+            addDataSourceProperty("databaseName", name)
+            addDataSourceProperty("user", user)
+            addDataSourceProperty("password", userpassword)
             minimumIdle = 1
             maxLifetime = 26000
             maximumPoolSize = 10
