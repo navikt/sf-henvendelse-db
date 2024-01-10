@@ -83,7 +83,9 @@ class PostgresDatabase {
     }
 
     fun create(dropFirst: Boolean = false) {
+        log.info { "Attempting connect to datasource" }
         connect(dataSource)
+        log.info { "Connection established" }
         transaction {
             // val statement = TransactionManager.current().connection.prepareStatement(initSql(adminUsername), false)
             // statement.executeUpdate()
