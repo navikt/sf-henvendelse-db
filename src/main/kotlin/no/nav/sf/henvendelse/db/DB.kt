@@ -49,7 +49,7 @@ class PostgresDatabase {
 
     private fun hikariConfig(): HikariConfig {
         return HikariConfig().apply {
-            jdbcUrl = dbUrl
+            jdbcUrl = "jdbc:$dbUrl"
             minimumIdle = 1
             maxLifetime = 26000
             maximumPoolSize = 10
