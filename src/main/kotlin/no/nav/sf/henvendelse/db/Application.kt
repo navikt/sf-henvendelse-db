@@ -36,7 +36,13 @@ object Application {
     fun start() {
         log.info { "Starting" }
         apiServer(NAIS_DEFAULT_PORT).start()
-        DB.postgresDatabase.create()
+        // postgresDatabase.create()
+        var count = postgresDatabase.upsertHenvendelse("test1", "aktorid1", """{ "id" : "test1", "data" : "1" }""")
+        log.info { "Result 1 Inserted $count" }
+        count = postgresDatabase.upsertHenvendelse("test2", "aktorid2", """{ "id" : "test2", "data" : "2" }""")
+        log.info { "Result 2 Inserted $count" }
+        count = postgresDatabase.upsertHenvendelse("test1", "aktorid1", """{ "id" : "test1b", "data" : "1b" }""")
+        log.info { "Result 1B Inserted $count" }
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))

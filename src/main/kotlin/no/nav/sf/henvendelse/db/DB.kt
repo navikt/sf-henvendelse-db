@@ -18,9 +18,7 @@ import java.time.LocalDateTime
 
 private val log = KotlinLogging.logger { }
 
-object DB {
-    val postgresDatabase = PostgresDatabase()
-}
+val postgresDatabase = PostgresDatabase()
 
 class PostgresDatabase {
     private val log = KotlinLogging.logger { }
@@ -105,6 +103,30 @@ class PostgresDatabase {
         }
         log.info { "drop and create done" }
     }
+
+    fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = true): Int {
+        return transaction {
+            Henvendelser.upsert(
+                keys = arrayOf(Henvendelser.id) // Perform update if there is a conflict here
+            ) {
+                it[Henvendelser.id] = id
+                it[Henvendelser.aktorid] = aktorid
+                it[Henvendelser.json] = json
+                it[Henvendelser.lastModified] = LocalDateTime.now()
+                it[Henvendelser.lastModifiedBySF] = updateBySF
+            }
+        }.insertedCount
+    }
+
+    fun henteHenvendelse(id: String) {
+        transaction {
+            val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
+
+            val resultRow = query.toList()
+            File("/tmp/latesthenteresult").writeText(resultRow.toString())
+            log.info { "henteArchive returns ${resultRow.size} entries" }
+        }
+    }
 }
 
 /**
@@ -121,28 +143,4 @@ object Henvendelser : Table() {
     // Record metadata
     val lastModified = datetime("last_modified").index()
     val lastModifiedBySF = bool("last_modified_by_sf")
-}
-
-fun upsertHenvendelse(id: String, aktorid: String, json: String): Int {
-    return transaction {
-        Henvendelser.upsert(
-            keys = arrayOf(Henvendelser.id) // Perform update if there is a conflict here
-        ) {
-            it[Henvendelser.id] = id
-            it[Henvendelser.aktorid] = aktorid
-            it[Henvendelser.json] = json
-            it[Henvendelser.lastModified] = LocalDateTime.now()
-            it[Henvendelser.lastModifiedBySF] = true
-        }
-    }.insertedCount
-}
-
-fun henteHenvendelse(id: String) {
-    transaction {
-        val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
-
-        val resultRow = query.toList()
-        File("/tmp/latesthenteresult").writeText(resultRow.toString())
-        log.info { "henteArchive returns ${resultRow.size} entries" }
-    }
 }
