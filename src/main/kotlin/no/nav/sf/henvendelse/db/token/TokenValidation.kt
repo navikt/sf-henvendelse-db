@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
-import no.nav.sf.henvendelse.db.env_WHITELIST_FILE
 import no.nav.sf.henvendelse.db.toNavRequest
 import org.http4k.core.Request
 import java.net.URL
@@ -40,14 +39,11 @@ object TokenValidation {
     }
 
     fun containsValidToken(request: Request, clientId: String): Boolean {
-        if (isDev && clientId == "skip") return true
         val firstValidToken = validatorFor(clientId).getValidatedTokens(request.toNavRequest()).firstValidToken
-        // For seperation of OBO token and machine token:
+        // For separation of OBO token and machine token:
         // if (firstValidToken.isPresent) {
         // log.info { "Contains name claim: ${(firstValidToken.get().jwtTokenClaims.get("name") != null)}" }
         // }
         return firstValidToken.isPresent
     }
-
-    val isDev = (System.getenv(env_WHITELIST_FILE) == "/whitelist/dev.json")
 }

@@ -23,49 +23,20 @@ val postgresDatabase = PostgresDatabase()
 class PostgresDatabase {
     private val log = KotlinLogging.logger { }
 
-    // val dbName = System.getenv("DB_NAME")
-    // val dbUrl = System.getenv("DB_URL")
-    // private val vaultMountPath = System.getenv("MOUNT_PATH")
-    // private val adminUsername = "dbName-admin"
-    // private val username = "dbName-user"
-    private val dbUrl = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_URL")!!
-    private val host = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_HOST")!!
-    private val port = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_PORT")!!
-    private val name = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_DATABASE")!!
-    private val user = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_USERNAME")!!
-    private val userpassword = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_PASSWORD")!!
+    private val dbUrl = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_URL")
+    private val host = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_HOST")
+    private val port = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_PORT")
+    private val name = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_DATABASE")
+    private val user = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_USERNAME")
+    private val userpassword = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_PASSWORD")
 
-    /**
-     * hostname	NAIS_DATABASE_MYAPP_MYDB_HOST	127.0.0.1
-     port	NAIS_DATABASE_MYAPP_MYDB_PORT	5432
-     database name	NAIS_DATABASE_MYAPP_MYDB_DATABASE	.spec.gcp.sqlInstances[].databases[].name
-     database user	NAIS_DATABASE_MYAPP_MYDB_USERNAME	.spec.gcp.sqlInstances[].name
-     database password	NAIS_DATABASE_MYAPP_MYDB_PASSWORD	(randomly generated)
-     database url with credentials	NAIS_DATABASE_MYAPP_MYDB_URL	postgres://username:password@127.0.0.1:5432/mydb
-     */
-
-    // val dataSource: HikariDataSource = dataSource()
-    // val connection: Connection get() = dataSource.connection.apply { autoCommit = false }
-
-    // private fun initSql(role: String) = """SET ROLE "$role""""
-
-    // HikariCPVaultUtil fetches and refreshed credentials
-    /*
-    private fun dataSource(admin: Boolean = false): HikariDataSource =
-        HikariCPVaultUtil.createHikariDataSourceWithVaultIntegration(
-            hikariConfig(),
-            vaultMountPath,
-            if (admin) adminUsername else username
-        )
-
-     */
-
-    val dataSource = HikariDataSource(hikariConfig())
+    // val dataSource = HikariDataSource(hikariConfig())
+    // Note: exposed Database connect prepares for connections but does not actually open connections
+    // That is handled via transaction {} ensuring connections are opened and closed properly
+    val database = Database.connect(HikariDataSource(hikariConfig()))
 
     private fun hikariConfig(): HikariConfig {
         return HikariConfig().apply {
-            // jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
-            // jdbcUrl = "jdbc:postgresql://"
             jdbcUrl = "jdbc:postgresql://localhost:$port/$name"
             driverClassName = "org.postgresql.Driver"
             addDataSourceProperty("serverName", host)
@@ -85,7 +56,7 @@ class PostgresDatabase {
 
     fun create(dropFirst: Boolean = false) {
         log.info { "Attempting connect to datasource" }
-        Database.connect(dataSource)
+        // Database.connect(dataSource)
         log.info { "Connection established" }
         transaction {
             // val statement = TransactionManager.current().connection.prepareStatement(initSql(adminUsername), false)
@@ -105,7 +76,7 @@ class PostgresDatabase {
     }
 
     fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = true): Int {
-        Database.connect(dataSource)
+        // Database.connect(dataSource)
         return transaction {
             Henvendelser.upsert(
                 keys = arrayOf(Henvendelser.id) // Perform update if there is a conflict here
@@ -120,11 +91,12 @@ class PostgresDatabase {
     }
 
     fun henteHenvendelse(id: String) {
-        Database.connect(dataSource)
+        // Database.connect(dataSource)
         transaction {
             val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
 
             val resultRow = query.toList()
+            log.info { "Latest hente result: $resultRow" }
             File("/tmp/latesthenteresult").writeText(resultRow.toString())
             log.info { "henteArchive returns ${resultRow.size} entries" }
         }

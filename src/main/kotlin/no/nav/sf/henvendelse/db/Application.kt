@@ -19,17 +19,6 @@ const val NAIS_ISALIVE = "/internal/isAlive"
 const val NAIS_ISREADY = "/internal/isReady"
 const val NAIS_METRICS = "/internal/metrics"
 
-const val API_URI_VAR = "rest"
-const val API_INTERNAL_TEST_URI = "/internal/test/{$API_URI_VAR:.*}"
-const val API_URI = "/{$API_URI_VAR:.*}"
-
-const val TARGET_APP = "target-app"
-const val TARGET_CLIENT_ID = "target-client-id"
-const val TARGET_NAMESPACE = "target-namespace"
-const val HOST = "host"
-
-const val env_WHITELIST_FILE = "WHITELIST_FILE"
-
 object Application {
     private val log = KotlinLogging.logger { }
 
@@ -37,12 +26,13 @@ object Application {
         log.info { "Starting" }
         apiServer(NAIS_DEFAULT_PORT).start()
         // postgresDatabase.create()
-        var count = postgresDatabase.upsertHenvendelse("test1", "aktorid1", """{ "id" : "test1", "data" : "1" }""")
-        log.info { "Result 1 Inserted $count" }
-        count = postgresDatabase.upsertHenvendelse("test2", "aktorid2", """{ "id" : "test2", "data" : "2" }""")
-        log.info { "Result 2 Inserted $count" }
-        count = postgresDatabase.upsertHenvendelse("test1", "aktorid1", """{ "id" : "test1b", "data" : "1b" }""")
-        log.info { "Result 1B Inserted $count" }
+        var count = postgresDatabase.upsertHenvendelse("test3", "aktorid3", """{ "id" : "test3", "data" : "3" }""")
+        log.info { "Result 3 Inserted $count" }
+        postgresDatabase.henteHenvendelse("test1")
+//        count = postgresDatabase.upsertHenvendelse("test2", "aktorid2", """{ "id" : "test2", "data" : "2" }""")
+//        log.info { "Result 2 Inserted $count" }
+//        count = postgresDatabase.upsertHenvendelse("test1", "aktorid1", """{ "id" : "test1b", "data" : "1b" }""")
+//        log.info { "Result 1B Inserted $count" }
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
