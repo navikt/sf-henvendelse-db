@@ -108,10 +108,10 @@ class PostgresDatabase {
 }
 
 /**
- * Max limit of postgres varchar of 1 GB (1073741824 chars)
+ * Max limit of postgres varchar of 10 MB (10485760 chars)
  * Note that postgres do not pre-allocate space, so a large varchar will not affect footprint in db
  */
-const val MAX_LIMIT_VARCHAR = 1073741824
+const val MAX_LIMIT_VARCHAR = 10485760
 
 object Henvendelser : Table() {
     val id = varchar("id", 18).uniqueIndex()
