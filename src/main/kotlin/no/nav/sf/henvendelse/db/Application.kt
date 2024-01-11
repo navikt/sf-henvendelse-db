@@ -6,7 +6,6 @@ import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
-import org.http4k.core.Status.Companion.OK
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.http4k.server.ApacheServer
@@ -27,9 +26,10 @@ object Application {
         apiServer(NAIS_DEFAULT_PORT).start()
         // postgresDatabase.create()
         val resultUpsert = postgresDatabase.upsertHenvendelse("test3b", "aktorid3", """{ "id" : "test3b", "data" : "3b" }""")
-        log.info { "Result success 3 w 3b $resultUpsert" }
+        log.info { "Result 3 w 3b (again) $resultUpsert" }
+        postgresDatabase.henteAlle()
         postgresDatabase.henteHenvendelse("test3b")
-        postgresDatabase.henteHenvendelserByAktorid("aktorid")
+        postgresDatabase.henteHenvendelserByAktorid("aktorid3")
         postgresDatabase.henteHenvendelse("notthere")
     }
 

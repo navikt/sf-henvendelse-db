@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Database.Companion.connect
-import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
@@ -68,7 +67,7 @@ class PostgresDatabase {
         log.info { "drop and create done" }
     }
 
-    fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = true): HenvendelseRecord? {
+    fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {
         return transaction {
             Henvendelser.upsert(
                 keys = arrayOf(Henvendelser.id) // Perform update if there is a conflict here
@@ -86,9 +85,9 @@ class PostgresDatabase {
         transaction {
             val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
 
-            val resultRow = query.toList().map { ResultRow::toHenvendelseRecord }
+            val resultRow = query.toList().map { it.toHenvendelseRecord() }
 
-            log.info { "Latest hente result: $resultRow" }
+            log.info { "Latest hente result for id $id: $resultRow" }
             File("/tmp/latesthenteresult").writeText(resultRow.toString())
             log.info { "hente by id returns ${resultRow.size} entries" }
         }
@@ -98,11 +97,21 @@ class PostgresDatabase {
         transaction {
             val query = Henvendelser.selectAll().andWhere { Henvendelser.aktorid eq aktorid }
 
-            val resultRow = query.toList().map(ResultRow::toHenvendelseRecord)
+            val resultRow = query.toList().map { it.toHenvendelseRecord() }
 
-            log.info { "Latest hente aktorid result: $resultRow" }
+            log.info { "Latest hente aktorid for aktorid $aktorid result: $resultRow" }
             File("/tmp/latesthenteaktoridresult").writeText(resultRow.toString())
             log.info { "hente by aktorid returns ${resultRow.size} entries" }
+        }
+    }
+
+    fun henteAlle() {
+        transaction {
+            val query = Henvendelser.selectAll()
+            val resultRow = query.toList().map { it.toHenvendelseRecord() }
+            log.info { "Latest hente alle result: $resultRow" }
+            File("/tmp/latesthentealleidresult").writeText(resultRow.toString())
+            log.info { "hente alle returns ${resultRow.size} entries" }
         }
     }
 }
