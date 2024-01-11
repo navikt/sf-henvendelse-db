@@ -68,6 +68,7 @@ class PostgresDatabase {
         return HikariConfig().apply {
             // jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
             // jdbcUrl = "jdbc:postgresql://"
+            jdbcUrl = "jdbc:postgresql://localhost:$port/$name"
             driverClassName = "org.postgresql.Driver"
             addDataSourceProperty("serverName", host)
             addDataSourceProperty("port", port)
