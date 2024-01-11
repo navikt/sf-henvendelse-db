@@ -66,7 +66,7 @@ class PostgresDatabase {
 
     private fun hikariConfig(): HikariConfig {
         return HikariConfig().apply {
-            jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
+            // jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
             // jdbcUrl = "jdbc:postgresql://"
             driverClassName = "org.postgresql.Driver"
             addDataSourceProperty("serverName", host)
