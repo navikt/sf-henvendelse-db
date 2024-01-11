@@ -105,6 +105,7 @@ class PostgresDatabase {
     }
 
     fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = true): Int {
+        Database.connect(dataSource)
         return transaction {
             Henvendelser.upsert(
                 keys = arrayOf(Henvendelser.id) // Perform update if there is a conflict here
@@ -119,6 +120,7 @@ class PostgresDatabase {
     }
 
     fun henteHenvendelse(id: String) {
+        Database.connect(dataSource)
         transaction {
             val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
 
