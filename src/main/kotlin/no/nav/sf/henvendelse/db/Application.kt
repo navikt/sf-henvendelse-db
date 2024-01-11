@@ -1,5 +1,6 @@
 package no.nav.sf.henvendelse.db
 
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.prometheus.client.exporter.common.TextFormat
@@ -22,6 +23,8 @@ const val NAIS_METRICS = "/internal/metrics"
 
 object Application {
     private val log = KotlinLogging.logger { }
+
+    val gson = Gson()
 
     fun start() {
         log.info { "Starting" }
@@ -55,28 +58,30 @@ object Application {
                 }
         },
         "/hello" bind Method.GET to { Response(Status.OK).body("hi") },
-        "/upsert" bind Method.POST to {
+        "/henvendelse" bind Method.POST to {
             val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
             val aktorid = jsonObj["aktorId"].asString
             val id = jsonObj["id"].asString
             val json = it.bodyString()
             // val henvendelse = gson.fromJson(it.bodyString(), Henvendelse::class.java)
             // postgresDatabase.upsertHenvendelse()
-            Response(Status.OK).body("Parsed aktorid: $aktorid, id: $id, json $json")
+            // Response(Status.OK).body("Parsed aktorid: $aktorid, id: $id, json $json")
+            val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
+            Response(Status.OK).body(gson.toJson(result))
         },
-        "/id" bind Method.GET to {
+        "/henvendelse" bind Method.GET to {
             val id = it.query("id")!!
             val result = postgresDatabase.henteHenvendelse(id)
-            Response(Status.OK).body(result.toString())
+            Response(Status.OK).body(gson.toJson(result))
         },
-        "/aktorid" bind Method.GET to {
+        "/henvendelser" bind Method.GET to {
             val aktorid = it.query("aktorid")!!
             val result = postgresDatabase.henteHenvendelserByAktorid(aktorid)
-            Response(Status.OK).body(result.toString())
+            Response(Status.OK).body(gson.toJson(result))
         },
         "/all" bind Method.GET to {
             val result = postgresDatabase.henteAlle()
-            Response(Status.OK).body(result.toString())
+            Response(Status.OK).body(gson.toJson(result))
         }
     )
 }
