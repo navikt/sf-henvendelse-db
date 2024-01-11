@@ -1,6 +1,7 @@
 package no.nav.sf.henvendelse.db
 
 import io.prometheus.client.exporter.common.TextFormat
+import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method

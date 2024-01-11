@@ -28,7 +28,6 @@ class PostgresDatabase {
     // private val adminUsername = "dbName-admin"
     // private val username = "dbName-user"
     private val dbUrl = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_URL")!!
-
     private val host = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_HOST")!!
     private val port = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_PORT")!!
     private val name = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_DEV_DATABASE")!!
@@ -64,8 +63,8 @@ class PostgresDatabase {
 
     private fun hikariConfig(): HikariConfig {
         return HikariConfig().apply {
-            // jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
-            jdbcUrl = "jdbc:postgresql://"
+            jdbcUrl = dbUrl.replace("postgres", "jdbc:postgresql")
+            // jdbcUrl = "jdbc:postgresql://"
             driverClassName = "org.postgresql.Driver"
             addDataSourceProperty("serverName", host)
             addDataSourceProperty("port", port)
