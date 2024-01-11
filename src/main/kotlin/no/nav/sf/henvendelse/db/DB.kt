@@ -5,10 +5,9 @@ import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Database.Companion.connect
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -55,13 +54,7 @@ class PostgresDatabase {
     }
 
     fun create(dropFirst: Boolean = false) {
-        log.info { "Attempting connect to datasource" }
-        // Database.connect(dataSource)
-        log.info { "Connection established" }
         transaction {
-            // val statement = TransactionManager.current().connection.prepareStatement(initSql(adminUsername), false)
-            // statement.executeUpdate()
-
             if (dropFirst) {
                 log.info { "Dropping table Henvendelser" }
                 val dropStatement =
@@ -75,8 +68,7 @@ class PostgresDatabase {
         log.info { "drop and create done" }
     }
 
-    fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = true): Int {
-        // Database.connect(dataSource)
+    fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = true): HenvendelseRecord? {
         return transaction {
             Henvendelser.upsert(
                 keys = arrayOf(Henvendelser.id) // Perform update if there is a conflict here
@@ -87,34 +79,30 @@ class PostgresDatabase {
                 it[Henvendelser.lastModified] = LocalDateTime.now()
                 it[Henvendelser.lastModifiedBySF] = updateBySF
             }
-        }.insertedCount
+        }.resultedValues?.firstOrNull()?.toHenvendelseRecord()
     }
 
     fun henteHenvendelse(id: String) {
-        // Database.connect(dataSource)
         transaction {
             val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
 
-            val resultRow = query.toList()
+            val resultRow = query.toList().map { ResultRow::toHenvendelseRecord }
+
             log.info { "Latest hente result: $resultRow" }
             File("/tmp/latesthenteresult").writeText(resultRow.toString())
-            log.info { "henteArchive returns ${resultRow.size} entries" }
+            log.info { "hente by id returns ${resultRow.size} entries" }
         }
     }
-}
 
-/**
- * Max limit of postgres varchar of 10 MB (10485760 chars)
- * Note that postgres do not pre-allocate space, so a large varchar will not affect footprint in db
- */
-const val MAX_LIMIT_VARCHAR = 10485760
+    fun henteHenvendelserByAktorid(aktorid: String) {
+        transaction {
+            val query = Henvendelser.selectAll().andWhere { Henvendelser.aktorid eq aktorid }
 
-object Henvendelser : Table() {
-    val id = varchar("id", 18).uniqueIndex()
-    val aktorid = varchar("aktorid", 20).index()
-    val json = varchar("json", MAX_LIMIT_VARCHAR)
+            val resultRow = query.toList().map(ResultRow::toHenvendelseRecord)
 
-    // Record metadata
-    val lastModified = datetime("last_modified").index()
-    val lastModifiedBySF = bool("last_modified_by_sf")
+            log.info { "Latest hente aktorid result: $resultRow" }
+            File("/tmp/latesthenteaktoridresult").writeText(resultRow.toString())
+            log.info { "hente by aktorid returns ${resultRow.size} entries" }
+        }
+    }
 }
