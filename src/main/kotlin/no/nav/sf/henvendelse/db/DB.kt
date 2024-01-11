@@ -81,37 +81,46 @@ class PostgresDatabase {
         }.resultedValues?.firstOrNull()?.toHenvendelseRecord()
     }
 
-    fun henteHenvendelse(id: String) {
+    fun henteHenvendelse(id: String): List<HenvendelseRecord> {
+        val result: MutableList<HenvendelseRecord> = mutableListOf()
         transaction {
             val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
 
             val resultRow = query.toList().map { it.toHenvendelseRecord() }
+            result.addAll(resultRow)
 
             log.info { "Latest hente result for id $id: $resultRow" }
             File("/tmp/latesthenteresult").writeText(resultRow.toString())
             log.info { "hente by id returns ${resultRow.size} entries" }
         }
+        return result
     }
 
-    fun henteHenvendelserByAktorid(aktorid: String) {
+    fun henteHenvendelserByAktorid(aktorid: String): List<HenvendelseRecord> {
+        val result: MutableList<HenvendelseRecord> = mutableListOf()
         transaction {
             val query = Henvendelser.selectAll().andWhere { Henvendelser.aktorid eq aktorid }
 
             val resultRow = query.toList().map { it.toHenvendelseRecord() }
+            result.addAll(resultRow)
 
             log.info { "Latest hente aktorid for aktorid $aktorid result: $resultRow" }
             File("/tmp/latesthenteaktoridresult").writeText(resultRow.toString())
             log.info { "hente by aktorid returns ${resultRow.size} entries" }
         }
+        return result
     }
 
-    fun henteAlle() {
+    fun henteAlle(): List<HenvendelseRecord> {
+        val result: MutableList<HenvendelseRecord> = mutableListOf()
         transaction {
             val query = Henvendelser.selectAll()
             val resultRow = query.toList().map { it.toHenvendelseRecord() }
+            result.addAll(resultRow)
             log.info { "Latest hente alle result: $resultRow" }
             File("/tmp/latesthentealleidresult").writeText(resultRow.toString())
             log.info { "hente alle returns ${resultRow.size} entries" }
         }
+        return result
     }
 }
