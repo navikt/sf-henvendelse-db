@@ -3,6 +3,7 @@ package no.nav.sf.henvendelse.db
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
+import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.Database.Companion.connect
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
@@ -17,7 +18,9 @@ import java.time.LocalDateTime
 
 private val log = KotlinLogging.logger { }
 
-val postgresDatabase = PostgresDatabase()
+object DB {
+    val postgresDatabase = PostgresDatabase()
+}
 
 class PostgresDatabase {
     private val log = KotlinLogging.logger { }
@@ -59,7 +62,7 @@ class PostgresDatabase {
 
      */
 
-    private val dataSource = HikariDataSource(hikariConfig())
+    val dataSource = HikariDataSource(hikariConfig())
 
     private fun hikariConfig(): HikariConfig {
         return HikariConfig().apply {
@@ -83,7 +86,7 @@ class PostgresDatabase {
 
     fun create(dropFirst: Boolean = false) {
         log.info { "Attempting connect to datasource" }
-        connect(dataSource)
+        Database.connect(dataSource)
         log.info { "Connection established" }
         transaction {
             // val statement = TransactionManager.current().connection.prepareStatement(initSql(adminUsername), false)

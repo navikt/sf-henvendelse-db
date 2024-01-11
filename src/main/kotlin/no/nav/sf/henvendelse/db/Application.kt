@@ -1,7 +1,6 @@
 package no.nav.sf.henvendelse.db
 
 import io.prometheus.client.exporter.common.TextFormat
-import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
@@ -37,7 +36,7 @@ object Application {
     fun start() {
         log.info { "Starting" }
         apiServer(NAIS_DEFAULT_PORT).start()
-        postgresDatabase.create()
+        DB.postgresDatabase.create()
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
