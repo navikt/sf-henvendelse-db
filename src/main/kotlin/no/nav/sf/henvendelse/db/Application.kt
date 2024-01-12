@@ -1,6 +1,6 @@
 package no.nav.sf.henvendelse.db
 
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.prometheus.client.exporter.common.TextFormat
@@ -15,6 +15,7 @@ import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
 import java.io.StringWriter
+import java.time.LocalDateTime
 
 const val NAIS_DEFAULT_PORT = 8080
 const val NAIS_ISALIVE = "/internal/isAlive"
@@ -24,7 +25,7 @@ const val NAIS_METRICS = "/internal/metrics"
 object Application {
     private val log = KotlinLogging.logger { }
 
-    val gson = Gson()
+    val gson = GsonBuilder().registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeTypeAdapter()).create()
 
     fun start() {
         log.info { "Starting" }
@@ -68,6 +69,21 @@ object Application {
             // Response(Status.OK).body("Parsed aktorid: $aktorid, id: $id, json $json")
             val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
             Response(Status.OK).body(gson.toJson(result))
+        },
+        "/henvendelser" bind Method.PUT to {
+            val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
+            log.info { "Batch henvendelser called with ${jsonArray.size()} items" }
+            val updatedIds: MutableList<String> = mutableListOf()
+            jsonArray.forEach { e ->
+                val jsonObj = e as JsonObject
+                val aktorid = jsonObj["aktorId"].asString
+                val id = jsonObj["id"].asString
+                val json = jsonObj.toString()
+                val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
+                result?.let { updatedIds.add(result.id) }
+            }
+            log.info { "Upserted ${updatedIds.size} items" }
+            Response(Status.OK).body("Upserted ${updatedIds.size} items")
         },
         "/henvendelse" bind Method.GET to {
             val id = it.query("id")!!
