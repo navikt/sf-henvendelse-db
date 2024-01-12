@@ -1,0 +1,310 @@
+{
+  "openapi": "3.0.2",
+  "info": {
+    "title": "Henvendelse DB API",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "https://sf-henvendelse-db.intern.dev.nav.no"
+    },
+    {
+      "url": "https://sf-henvendelse-db.extern.dev.nav.no"
+    }
+  ],
+  "paths": {
+    "/henvendelse": {
+      "get": {
+        "tags": [
+          "read"
+        ],
+        "description": "Returnerer henvendelse",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": "{ \n  \"id\" : \"id\",\n  \"aktorId\" : \"aktorId\",\n  \"etc\" : \"etc...\"\n}"
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unik id til henvendelse"
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "write"
+        ],
+        "description": "Lagrer henvendelse (upsert)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": "{ \n  \"id\" : \"id\",\n  \"aktorId\" : \"aktorId\",\n  \"etc\" : \"etc...\"\n}"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "henvendelse json": {
+                    "value": "{ \"id\" : \"id\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/henvendelser": {
+      "get": {
+        "tags": [
+          "read"
+        ],
+        "description": "Returnerer henvendelse",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "example": "[{ \"id\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"id\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        },
+        "parameters": [
+          {
+            "name": "aktorid",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Aktorid for oppslag av henvendelser"
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "write"
+        ],
+        "description": "Lagrer liste med henvendelser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": "[\n  { \n    \"id\" : \"id\",\n    \"aktorId\" : \"aktorId\",\n    \"etc\" : \"etc...\" \n  },\n  { \n    \"id\" : \"id2\",\n    \"aktorId\" : \"aktorId2\",\n    \"etc\" : \"etc...\" \n  }\n]"
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "example": "Upserted 100 items"
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "Salesforce_auth": []
+    }
+  ],
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message"
+        ]
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "NOT FOUND",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "ActorNotFound": {
+                "value": {
+                  "statusCode": 404,
+                  "message": "Could not find actor"
+                }
+              },
+              "HenvendelesNotFound": {
+                "value": {
+                  "statusCode": 404,
+                  "message": "No henvendelse with Id: {id}"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "FORBIDDEN",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "MissingActorId": {
+                "value": {
+                  "statusCode": 403,
+                  "message": "Invalid or missing sub-claim in auth token"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NoNewMessageOnClosedThread": {
+        "description": "Cannot insert new message on closed thread",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "MissingActorId": {
+                "value": {
+                  "statusCode": 403,
+                  "message": "Invalid or missing sub-claim in auth token"
+                }
+              },
+              "ClosedThread": {
+                "value": {
+                  "statusCode": 400,
+                  "message": "Cannot insert new message on closed thread"
+                }
+              }
+            }
+          }
+        }
+      },
+      "BadRequest": {
+        "description": "BAD REQUEST",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "MissingRequiredInput": {
+                "value": {
+                  "statusCode": 400,
+                  "message": "Missing required input"
+                }
+              }
+            }
+          }
+        }
+      },
+      "MissingNavIdent": {
+        "description": "Missing sub claim in bearer token",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "statusCode": {
+                  "type": "integer",
+                  "example": 403
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Invalid or missing sub-claim in auth token"
+                }
+              }
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "UNEXPECTED EXCEPTION",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "examples": {
+              "InternalError": {
+                "value": {
+                  "statusCode": 500,
+                  "message": "Service unavailable"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "X-Correlation-ID": {
+        "name": "X-Correlation-ID",
+        "in": "header",
+        "required": true,
+        "description": "Unik UUID for inkommende request",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "securitySchemes": {
+      "Salesforce_auth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

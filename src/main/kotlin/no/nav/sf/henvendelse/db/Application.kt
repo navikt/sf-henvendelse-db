@@ -28,10 +28,12 @@ const val NAIS_METRICS = "/internal/metrics"
 object Application {
     private val log = KotlinLogging.logger { }
 
-    val gson = GsonBuilder().registerTypeAdapter(
+    private val gson = GsonBuilder().registerTypeAdapter(
         LocalDateTime::class.java,
         LocalDateTimeTypeAdapter()
     ).create()
+
+    private val viewPageSize = System.getenv("VIEW_PAGE_SIZE").toInt()
 
     fun start() {
         log.info { "Starting" }
@@ -64,7 +66,8 @@ object Application {
                     if (it.isNotEmpty()) Response(Status.OK).body(it) else Response(Status.NO_CONTENT)
                 }
         },
-        "/internal/swagger" bind static(ResourceLoader.Classpath("/static")),
+        "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
+        "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
         "/henvendelse" bind Method.POST to {
             try {
                 val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
@@ -126,14 +129,13 @@ object Application {
         },
         "/internal/view" bind Method.GET to {
             val page = it.query("page")!!.toLong()
-            val pageSize = 2
             val count = postgresDatabase.count()
-            val result = postgresDatabase.view(page, pageSize)
-            Response(Status.OK).body("Page $page of ${pageCount(pageSize, count)} (size $pageSize)\n\n" + gson.toJson(result))
+            val result = postgresDatabase.view(page, viewPageSize)
+            Response(Status.OK).body("Page $page of ${pageCount(count)} (size $viewPageSize, total $count)\n\n" + gson.toJson(result))
         }
     )
 
-    private fun pageCount(pageSize: Int, count: Long): Long {
-        return (count + pageSize - 1) / pageSize
+    private fun pageCount(count: Long): Long {
+        return (count + viewPageSize - 1) / viewPageSize
     }
 }

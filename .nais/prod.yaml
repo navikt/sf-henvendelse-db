@@ -50,5 +50,5 @@ spec:
           namespace: teamcrm
           cluster: prod-external
   env:
-    - name: WHITELIST_FILE
-      value: '/whitelist/prod.json'
+    - name: VIEW_PAGE_SIZE
+      value: 2
