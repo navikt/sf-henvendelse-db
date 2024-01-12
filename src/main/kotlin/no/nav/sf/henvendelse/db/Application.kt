@@ -131,7 +131,7 @@ object Application {
             val page = it.query("page")!!.toLong()
             val count = postgresDatabase.count()
             val result = postgresDatabase.view(page, viewPageSize)
-            val viewData = ViewData(page, pageCount(page), viewPageSize, count, result)
+            val viewData = ViewData(page, pageCount(count), viewPageSize, count, result)
             Response(Status.OK).body(gson.toJson(viewData))
         }
     )
