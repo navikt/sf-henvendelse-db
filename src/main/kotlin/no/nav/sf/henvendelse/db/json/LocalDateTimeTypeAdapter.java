@@ -1,4 +1,4 @@
-package no.nav.sf.henvendelse.db;
+package no.nav.sf.henvendelse.db.json;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
