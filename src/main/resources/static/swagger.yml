@@ -1,167 +1,223 @@
-openapi: 3.0.1
+openapi: 3.0.2
 info:
-  title: Arkiv dokumentasjon
-  description: API for arkiv dokumentasjon
-  version: "1.0"
+  title: Henvendelse DB API
+  version: '1.0'
 servers:
-  - url: https://arkivdokumentasjon.dev.intern.nav.no
-  - url: https://arkivdokumentasjon.intern.nav.no
+  - url: https://sf-henvendelse-db.intern.dev.nav.no
+  - url: https://sf-henvendelse-db.extern.dev.nav.no
 paths:
-  /arkiv:
-    post:
+  /henvendelse:
+    get:
       tags:
-        - Arkiv
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/ArkivModel'
-        required: true
+        - read
+      description: Returnerer henvendelse
       responses:
-        201:
-          description: OK - arkivert
+        '200':
+          description: OK
           content:
             application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ArkivResponse'
-        400:
-          description: Ugyldig forespørsel
-        401:
-          description: Giltigt token mangler
-          content: {}
-      x-codegen-request-body-name: body
-  /hente:
+              example: |-
+                { 
+                  "id" : "id",
+                  "aktorId" : "aktorId",
+                  "etc" : "etc..."
+                }
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Unik id til henvendelse
     post:
       tags:
-        - Arkiv
+        - write
+      description: Lagrer henvendelse (upsert)
       requestBody:
+        required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/HenteModel'
-            example:
-              kilde: "string"
-              dokumentasjonId: "string"
-              dokumentdato: "2021-01-02"
-              aktoerid: "string"
-              fnr: "string"
-              orgnr: "string"
-              tema: "string"
-        required: true
+            example: |-
+              { 
+                "id" : "id",
+                "aktorId" : "aktorId",
+                "etc" : "etc..."
+              }
       responses:
-        200:
+        '200':
+          description: OK
+          content:
+            application/json:
+              examples:
+                henvendelse json:
+                  value: |-
+                    { "id" : "id",
+                    "aktorId" : "aktorId",
+                    "etc" : "etc..."}
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /henvendelser:
+    get:
+      tags:
+        - read
+      description: Returnerer henvendelse
+      responses:
+        '200':
           description: OK
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/HenteResponse'
-        400:
-          description: Ugyldig forespørsel
-        401:
-          description: Giltigt token manglar
-          content: {}
-      x-codegen-request-body-name: body
+                  type: object
+              example: |-
+                [{ "id" : "id1",
+                "aktorId" : "aktorId",
+                "etc" : "etc..."},
+                { "id" : "id2",
+                "aktorId" : "aktorId",
+                "etc" : "etc..."}]
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      parameters:
+        - name: aktorid
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Aktorid for oppslag av henvendelser
+    put:
+      tags:
+        - write
+      description: Lagrer liste med henvendelser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example: |-
+              [
+                { 
+                  "id" : "id",
+                  "aktorId" : "aktorId",
+                  "etc" : "etc..." 
+                },
+                { 
+                  "id" : "id2",
+                  "aktorId" : "aktorId2",
+                  "etc" : "etc..." 
+                }
+              ]
+      responses:
+        '200':
+          description: OK
+          content:
+            text/plain:
+              example: |-
+                Upserted 100 items
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+security:
+  - Salesforce_auth: []
 components:
   schemas:
-    ArkivModel:
+    Error:
       type: object
       properties:
-        dokumentasjon:
-          type: string
-        kilde:
-          type: string
-        opprettetAv:
-          type: string
-        dokumentasjonId:
-          type: string
-        dokumentdato:
-          type: string
-        aktoerid:
-          type: string
-        fnr:
-          type: string
-        orgnr:
-          type: string
-        tema:
-          type: string
-        konfidentiellt:
-          type: boolean
-    ArkivResponse:
-      type: object
-      properties:
-        id:
+        statusCode:
           type: integer
-          format: int32
-        dato:
+        message:
           type: string
-        dokumentasjonId:
-          type: string
-        dokumentasjonSummarized:
-          type: string
-        kilde:
-          type: string
-        opprettetAv:
-          type: string
-        aktoerid:
-          type: string
-        fnr:
-          type: string
-        orgnr:
-          type: string
-        tema:
-          type: string
-        konfidentiellt:
-          type: boolean
-    HenteModel:
-      type: object
-      properties:
-        kilde:
-          type: string
-          default: ""
-        dokumentasjonId:
-          type: string
-        dokumentdato:
-          type: string
-          default: ""
-        aktoerid:
-          type: string
-          default: ""
-        fnr:
-          type: string
-          default: ""
-        orgnr:
-          type: string
-          default: ""
-        tema:
-          type: string
-          default: ""
-    HenteResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int32
-        dato:
-          type: string
-        dokumentasjonId:
-          type: string
-        dokumentasjon:
-          type: string
-        kilde:
-          type: string
-        opprettetAv:
-          type: string
-        aktoerid:
-          type: string
-        fnr:
-          type: string
-        orgnr:
-          type: string
-        tema:
-          type: string
+      required:
+        - statusCode
+        - message
+  responses:
+    NotFound:
+      description: NOT FOUND
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            ActorNotFound:
+              value:
+                statusCode: 404
+                message: Could not find actor
+            HenvendelesNotFound:
+              value:
+                statusCode: 404
+                message: 'No henvendelse with Id: {id}'
+    Forbidden:
+      description: FORBIDDEN
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            MissingActorId:
+              value:
+                statusCode: 403
+                message: Invalid or missing sub-claim in auth token
+    NoNewMessageOnClosedThread:
+      description: Cannot insert new message on closed thread
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            MissingActorId:
+              value:
+                statusCode: 403
+                message: Invalid or missing sub-claim in auth token
+            ClosedThread:
+              value:
+                statusCode: 400
+                message: Cannot insert new message on closed thread
+    BadRequest:
+      description: BAD REQUEST
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            MissingRequiredInput:
+              value:
+                statusCode: 400
+                message: Missing required input
+    MissingNavIdent:
+      description: Missing sub claim in bearer token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+                example: 403
+              message:
+                type: string
+                example: Invalid or missing sub-claim in auth token
+    InternalServerError:
+      description: UNEXPECTED EXCEPTION
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            InternalError:
+              value:
+                statusCode: 500
+                message: Service unavailable
+  parameters:
+    X-Correlation-ID:
+      name: X-Correlation-ID
+      in: header
+      required: true
+      description: Unik UUID for inkommende request
+      schema:
+        type: string
+  securitySchemes:
+    Salesforce_auth:
+      type: http
+      scheme: bearer

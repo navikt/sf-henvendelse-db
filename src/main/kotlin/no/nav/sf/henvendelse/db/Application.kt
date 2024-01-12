@@ -17,6 +17,7 @@ import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
 import java.io.StringWriter
+import java.lang.Exception
 import java.time.LocalDateTime
 
 const val NAIS_DEFAULT_PORT = 8080
@@ -63,45 +64,67 @@ object Application {
                     if (it.isNotEmpty()) Response(Status.OK).body(it) else Response(Status.NO_CONTENT)
                 }
         },
-        "/hello" bind Method.GET to { Response(Status.OK).body("hi") },
         "/internal/swagger" bind static(ResourceLoader.Classpath("/static")),
         "/henvendelse" bind Method.POST to {
-            val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
-            val aktorid = jsonObj["aktorId"].asString
-            val id = jsonObj["id"].asString
-            val json = it.bodyString()
-            // val henvendelse = gson.fromJson(it.bodyString(), Henvendelse::class.java)
-            // postgresDatabase.upsertHenvendelse()
-            // Response(Status.OK).body("Parsed aktorid: $aktorid, id: $id, json $json")
-            val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
-            Response(Status.OK).body(gson.toJson(result))
+            try {
+                val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
+                val id = jsonObj["id"]?.asString
+                val aktorid = jsonObj["aktorId"]?.asString
+                val json = it.bodyString()
+                if (id == null) {
+                    Response(Status.BAD_REQUEST).body("Missing field id in json")
+                } else if (aktorid == null) {
+                    Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
+                } else {
+                    val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
+                    Response(Status.OK).body(gson.toJson(result))
+                }
+            } catch (_: Exception) {
+                Response(Status.BAD_REQUEST).body("Failed to parse request body as json object")
+            }
         },
         "/henvendelser" bind Method.PUT to {
-            val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
-            log.info { "Batch henvendelser called with ${jsonArray.size()} items" }
-            val updatedIds: MutableList<String> = mutableListOf()
-            jsonArray.forEach { e ->
-                val jsonObj = e as JsonObject
-                val aktorid = jsonObj["aktorId"].asString
-                val id = jsonObj["id"].asString
-                val json = jsonObj.toString()
-                val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
-                result?.let { updatedIds.add(result.id) }
+            try {
+                val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
+                log.info { "Batch henvendelser called with ${jsonArray.size()} items" }
+                val updatedIds: MutableList<String> = mutableListOf()
+                if (jsonArray.any { e -> (e as JsonObject)["id"] == null }) {
+                    Response(Status.BAD_REQUEST).body("At least one item is missing field id in json")
+                } else if (jsonArray.any { e -> (e as JsonObject)["aktorId"] == null }) {
+                    Response(Status.BAD_REQUEST).body("At least one item is missing field aktorId in json")
+                } else {
+                    jsonArray.forEach { e ->
+                        val jsonObj = e as JsonObject
+                        val json = jsonObj.toString()
+                        val result = postgresDatabase.upsertHenvendelse(jsonObj["id"].asString, jsonObj["aktorId"].asString, json)
+                        result?.let { updatedIds.add(result.id) }
+                    }
+                    log.info { "Upserted ${updatedIds.size} items" }
+                    Response(Status.OK).body("Upserted ${updatedIds.size} items")
+                }
+            } catch (_: Exception) {
+                Response(Status.BAD_REQUEST).body("Failed to parse request body as json array")
             }
-            log.info { "Upserted ${updatedIds.size} items" }
-            Response(Status.OK).body("Upserted ${updatedIds.size} items")
         },
         "/henvendelse" bind Method.GET to {
-            val id = it.query("id")!!
-            val result = postgresDatabase.henteHenvendelse(id)
-            Response(Status.OK).body(gson.toJson(result))
+            val id = it.query("id")
+            if (id == null) {
+                Response(Status.BAD_REQUEST).body("Missing parameter id")
+            } else {
+                val result = postgresDatabase.henteHenvendelse(id)
+                Response(Status.OK).body(gson.toJson(result))
+            }
         },
         "/henvendelser" bind Method.GET to {
-            val aktorid = it.query("aktorid")!!
-            val result = postgresDatabase.henteHenvendelserByAktorid(aktorid)
-            Response(Status.OK).body(gson.toJson(result))
+            val aktorid = it.query("aktorid")
+            if (aktorid == null) {
+                Response(Status.BAD_REQUEST).body("Missing parameter aktorid")
+            } else {
+                val result = postgresDatabase.henteHenvendelserByAktorid(aktorid)
+                Response(Status.OK).body(gson.toJson(result))
+            }
         },
-        "/view" bind Method.GET to {
+        "/internal/view" bind Method.GET to {
             val page = it.query("page")!!.toLong()
             val pageSize = 2
             val count = postgresDatabase.count()
