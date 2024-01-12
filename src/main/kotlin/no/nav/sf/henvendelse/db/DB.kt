@@ -111,15 +111,24 @@ class PostgresDatabase {
         return result
     }
 
-    fun henteAlle(): List<HenvendelseRecord> {
+    fun view(page: Long, pageSize: Int = 2): List<HenvendelseRecord> {
+        val offset = (page - 1) * pageSize
         val result: MutableList<HenvendelseRecord> = mutableListOf()
         transaction {
-            val query = Henvendelser.selectAll()
+            val query = Henvendelser.selectAll().limit(pageSize, offset)
             val resultRow = query.toList().map { it.toHenvendelseRecord() }
             result.addAll(resultRow)
-            log.info { "Latest hente alle result: $resultRow" }
+            log.info { "Latest view result: $resultRow" }
             File("/tmp/latesthentealleidresult").writeText(resultRow.toString())
-            log.info { "hente alle returns ${resultRow.size} entries" }
+            log.info { "view returns ${resultRow.size} entries" }
+        }
+        return result
+    }
+
+    fun count(): Long {
+        var result = 0L
+        transaction {
+            result = Henvendelser.selectAll().count()
         }
         return result
     }

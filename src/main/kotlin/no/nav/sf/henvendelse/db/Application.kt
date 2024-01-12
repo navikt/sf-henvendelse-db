@@ -9,8 +9,10 @@ import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.routing.ResourceLoader
 import org.http4k.routing.bind
 import org.http4k.routing.routes
+import org.http4k.routing.static
 import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
@@ -62,6 +64,7 @@ object Application {
                 }
         },
         "/hello" bind Method.GET to { Response(Status.OK).body("hi") },
+        "/internal/swagger" bind static(ResourceLoader.Classpath("/static")),
         "/henvendelse" bind Method.POST to {
             val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
             val aktorid = jsonObj["aktorId"].asString
@@ -98,9 +101,16 @@ object Application {
             val result = postgresDatabase.henteHenvendelserByAktorid(aktorid)
             Response(Status.OK).body(gson.toJson(result))
         },
-        "/all" bind Method.GET to {
-            val result = postgresDatabase.henteAlle()
-            Response(Status.OK).body(gson.toJson(result))
+        "/view" bind Method.GET to {
+            val page = it.query("page")!!.toLong()
+            val pageSize = 2
+            val count = postgresDatabase.count()
+            val result = postgresDatabase.view(page, pageSize)
+            Response(Status.OK).body("Page $page of ${pageCount(pageSize, count)} (size $pageSize)\n\n" + gson.toJson(result))
         }
     )
+
+    private fun pageCount(pageSize: Int, count: Long): Long {
+        return (count + pageSize - 1) / pageSize
+    }
 }
