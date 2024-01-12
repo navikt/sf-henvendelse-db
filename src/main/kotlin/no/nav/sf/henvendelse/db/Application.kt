@@ -5,7 +5,6 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.prometheus.client.exporter.common.TextFormat
 import mu.KotlinLogging
-import no.nav.sf.henvendelse.db.json.LocalDateTimeTypeAdapter
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Response
