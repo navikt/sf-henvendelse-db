@@ -51,4 +51,4 @@ spec:
           cluster: prod-external
   env:
     - name: VIEW_PAGE_SIZE
-      value: 2
+      value: "2"

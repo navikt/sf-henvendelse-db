@@ -63,4 +63,4 @@ spec:
           cluster: dev-external
   env:
     - name: VIEW_PAGE_SIZE
-      value: 2
+      value: "2"
