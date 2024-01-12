@@ -131,9 +131,12 @@ object Application {
             val page = it.query("page")!!.toLong()
             val count = postgresDatabase.count()
             val result = postgresDatabase.view(page, viewPageSize)
-            Response(Status.OK).body("Page $page of ${pageCount(count)} (size $viewPageSize, total $count)\n\n" + gson.toJson(result))
+            val viewData = ViewData(page, pageCount(page), viewPageSize, count, gson.toJson(result))
+            Response(Status.OK).body(gson.toJson(viewData))
         }
     )
+
+    private data class ViewData(val page: Long, val pageCount: Long, val pageSize: Int, val count: Long, val json: String)
 
     private fun pageCount(count: Long): Long {
         return (count + viewPageSize - 1) / viewPageSize

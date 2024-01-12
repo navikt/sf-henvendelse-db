@@ -62,11 +62,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "examples": {
-                  "henvendelse json": {
-                    "value": "{ \"id\" : \"id\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}"
-                  }
-                }
+                "example": "{ \"id\" : \"id\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}"
               }
             }
           },
@@ -87,12 +83,6 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object"
-                  }
-                },
                 "example": "[{ \"id\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"id\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
               }
             }
@@ -122,7 +112,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": "[\n  { \n    \"id\" : \"id\",\n    \"aktorId\" : \"aktorId\",\n    \"etc\" : \"etc...\" \n  },\n  { \n    \"id\" : \"id2\",\n    \"aktorId\" : \"aktorId2\",\n    \"etc\" : \"etc...\" \n  }\n]"
+              "example": "[{ \"id\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"id\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
             }
           }
         },
@@ -144,7 +134,7 @@
   },
   "security": [
     {
-      "Salesforce_auth": []
+      "Authorization": []
     }
   ],
   "components": {
