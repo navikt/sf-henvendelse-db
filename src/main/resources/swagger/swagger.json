@@ -112,6 +112,9 @@
           "required": true,
           "content": {
             "application/json": {
+              "schema": {
+                "type": "string"
+              },
               "example": "[{ \"id\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"id\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
             }
           }
@@ -180,48 +183,6 @@
           }
         }
       },
-      "Forbidden": {
-        "description": "FORBIDDEN",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "examples": {
-              "MissingActorId": {
-                "value": {
-                  "statusCode": 403,
-                  "message": "Invalid or missing sub-claim in auth token"
-                }
-              }
-            }
-          }
-        }
-      },
-      "NoNewMessageOnClosedThread": {
-        "description": "Cannot insert new message on closed thread",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "examples": {
-              "MissingActorId": {
-                "value": {
-                  "statusCode": 403,
-                  "message": "Invalid or missing sub-claim in auth token"
-                }
-              },
-              "ClosedThread": {
-                "value": {
-                  "statusCode": 400,
-                  "message": "Cannot insert new message on closed thread"
-                }
-              }
-            }
-          }
-        }
-      },
       "BadRequest": {
         "description": "BAD REQUEST",
         "content": {
@@ -240,28 +201,8 @@
           }
         }
       },
-      "MissingNavIdent": {
-        "description": "Missing sub claim in bearer token",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "statusCode": {
-                  "type": "integer",
-                  "example": 403
-                },
-                "message": {
-                  "type": "string",
-                  "example": "Invalid or missing sub-claim in auth token"
-                }
-              }
-            }
-          }
-        }
-      },
       "InternalServerError": {
-        "description": "UNEXPECTED EXCEPTION",
+        "description": "Internal server error",
         "content": {
           "application/json": {
             "schema": {
@@ -291,7 +232,7 @@
       }
     },
     "securitySchemes": {
-      "Salesforce_auth": {
+      "Authorization": {
         "type": "http",
         "scheme": "bearer"
       }
