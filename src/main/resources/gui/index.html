@@ -200,7 +200,7 @@
         reportdst.innerHTML = "<br>" + t.replaceAll("\n","<br>")
     }
 
-    const loadTablePage = async ( page ) => {
+    const loadTablePageOld = async ( page ) => {
         const response = await fetch('/internal/view?page='+page, {
             method: 'GET',
             headers: {
