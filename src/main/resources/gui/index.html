@@ -65,7 +65,9 @@
 
 <script>
     let currentPage = 1;
-    const pageSize = 2;
+    let pageSize = 1;
+    let count = 0;
+    let pageCount = 1
 
     window.onload = function() {
         console.log("Do on load");
@@ -80,9 +82,13 @@
             }
         });
 
+
         const data = await response.json();
         const records = data.records;
-
+        currentPage = data.page
+        pageCount = data.pageCount
+        pageSize = data.pageSize
+        count = data.count
         // Display records in a table
         const tableContainer = document.getElementById('table-container');
         tableContainer.innerHTML = '<table border="1">' +
@@ -100,8 +106,7 @@
 
         // Update current page information
         const currentPageElement = document.getElementById('currentPage');
-        currentPageElement.textContent = `Page ${page} of ${data.pageCount}`;
-        currentPage = page;
+        currentPageElement.textContent = `Page ${currentPage} of ${pageCount} (total ${count}, pagesize ${pageSize})`;
     };
 
     const loadPreviousPage = () => {
@@ -112,93 +117,10 @@
 
     const loadNextPage = () => {
         // You should check if there are more pages before loading the next one
-        if (currentPage < data.pageCount) {
+        if (currentPage < pageCount) {
             loadTablePage(currentPage + 1);
         }
     };
-
-    // window.onload = function() {
-    //     console.log("Do on load");
-    //     loadTablePage(1);
-    // };
-
-    const populateAction = async () => {
-        const response = await fetch('/datasets', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        var r = '["nks_knowledge","nks_chat"]';
-        var j = await response.json();
-
-        let datasetDrop = document.getElementById("datasetDropdown");
-
-        for (let i = 0; i < j.length; i++) {
-            datasetDrop.innerHTML += '<a onclick="datasetSelect(\''+j[i]+'\')">'+j[i]+'</a>';
-        }
-    }
-    function datasetDropdownBtnClick() {
-        document.getElementById("datasetDropdown").classList.toggle("show");
-    }
-    function datasetSelect(name) {
-        document.getElementById("datasetDropdownBtn").innerHTML = name;
-        document.getElementById("tableDropdownBtn").innerHTML = "Table"
-        document.getElementById("report").innerHTML = ""
-
-        populateTableAction(name)
-    }
-
-    const populateTableAction = async ( dataset ) => {
-        const response = await fetch('/tables?dataset='+dataset, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        var j = await response.json();
-
-        let tableDrop = document.getElementById("tableDropdown");
-
-        for (let i = 0; i < j.length; i++) {
-            if (i == 0) {
-                tableDrop.innerHTML = '<a>Table</a>';
-            }
-            tableDrop.innerHTML += '<a onclick="tableSelect(\''+dataset+'\',\''+j[i]+'\')">'+j[i]+'</a>';
-        }
-    }
-
-    const populateSchemaMapAction = async ( dataset, table ) => {
-        const response = await fetch('/schemamap?dataset='+dataset+'&table='+table, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'text/html'
-            }
-        });
-
-        var t = await response.text();
-
-        let reportdst = document.getElementById("report");
-
-        reportdst.innerHTML = t.replaceAll("\n","<br>") + '<br><br><br><a class="dropbtn" onclick="runTest(\''+dataset+'\',\''+table+'\')">Perform query and count</a>';
-    }
-
-    const populateTestResultAction = async ( dataset, table ) => {
-        let reportdst = document.getElementById("testreport");
-        reportdst.innerHTML = "<br>Pending..."
-        const response = await fetch('/testcall?dataset='+dataset+'&table='+table, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'text/html'
-            }
-        });
-
-        var t = await response.text();
-
-        reportdst.innerHTML = "<br>" + t.replaceAll("\n","<br>")
-    }
 
     const loadTablePageOld = async ( page ) => {
         const response = await fetch('/internal/view?page='+page, {
@@ -213,31 +135,6 @@
         let dst = document.body
 
         dst.innerHTML = dst.innerHTML + h
-    }
-
-    function tableDropdownBtnClick() {
-        document.getElementById("tableDropdown").classList.toggle("show");
-    }
-    function tableSelect(dataset, table) {
-        document.getElementById("tableDropdownBtn").innerHTML = table;
-        populateSchemaMapAction(dataset, table)
-    }
-    function runTest(dataset, table) {
-        populateTestResultAction(dataset, table)
-    }
-
-    // Close the dropdown if the user clicks outside of it
-    window.onclick = function(event) {
-        if (!event.target.matches('.dropbtn')) {
-            var dropdowns = document.getElementsByClassName("dropdown-content");
-            var i;
-            for (i = 0; i < dropdowns.length; i++) {
-                var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show')) {
-                    openDropdown.classList.remove('show');
-                }
-            }
-        }
     }
 </script>
 
