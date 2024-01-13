@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="shortcut icon" type="image/x-icon" href="/gui/ico.png">
+    <link rel="shortcut icon" type="image/x-icon" href="/internal/gui/ico.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
@@ -50,16 +50,77 @@
 <body>
 
 <h2>Henvendelse table examine</h2>
+<div id="table-container">
+    <!-- Records will be loaded here dynamically -->
+</div>
+
+<div id="pagination">
+    <button onclick="loadPreviousPage()">Previous</button>
+    <span id="currentPage"></span>
+    <button onclick="loadNextPage()">Next</button>
+</div>
 <div id="report"></div>
 <br>
 <div id="testreport"></div>
 
 <script>
+    let currentPage = 1;
+    const pageSize = 2;
+
     window.onload = function() {
         console.log("Do on load");
-        loadTablePage(1);
-        populateAction();
+        loadTablePage(currentPage);
     };
+
+    const loadTablePage = async (page) => {
+        const response = await fetch('/internal/view?page=' + page, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        const records = data.records;
+
+        // Display records in a table
+        const tableContainer = document.getElementById('table-container');
+        tableContainer.innerHTML = '<table border="1">' +
+            '<tr><th>ID</th><th>Aktor ID</th><th>JSON</th><th>Last Modified</th><th>Last Modified By SF</th></tr>' +
+            records.map(record =>
+                `<tr>
+                    <td>${record.id}</td>
+                    <td>${record.aktorid}</td>
+                    <td>${record.json}</td>
+                    <td>${record.lastModified}</td>
+                    <td>${record.lastModifiedBySF}</td>
+                </tr>`
+            ).join('') +
+            '</table>';
+
+        // Update current page information
+        const currentPageElement = document.getElementById('currentPage');
+        currentPageElement.textContent = `Page ${page} of ${data.pageCount}`;
+        currentPage = page;
+    };
+
+    const loadPreviousPage = () => {
+        if (currentPage > 1) {
+            loadTablePage(currentPage - 1);
+        }
+    };
+
+    const loadNextPage = () => {
+        // You should check if there are more pages before loading the next one
+        if (currentPage < data.pageCount) {
+            loadTablePage(currentPage + 1);
+        }
+    };
+
+    // window.onload = function() {
+    //     console.log("Do on load");
+    //     loadTablePage(1);
+    // };
 
     const populateAction = async () => {
         const response = await fetch('/datasets', {
