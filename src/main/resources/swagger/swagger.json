@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.2",
+  "openapi": "3.0.3",
   "info": {
     "title": "Henvendelse DB API",
     "version": "1.0"
@@ -28,8 +28,11 @@
               }
             }
           },
+          "401": {
+            "description" : "Unauthorized"
+          },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "description" : "Internal service error"
           }
         },
         "parameters": [
@@ -66,8 +69,11 @@
               }
             }
           },
+          "401": {
+            "description" : "Unauthorized"
+          },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "description" : "Internal service error"
           }
         }
       }
@@ -87,8 +93,11 @@
               }
             }
           },
+          "401": {
+            "description" : "Unauthorized"
+          },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "description" : "Internal service error"
           }
         },
         "parameters": [
@@ -112,9 +121,6 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "type": "string"
-              },
               "example": "[{ \"id\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"id\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
             }
           }
@@ -128,8 +134,11 @@
               }
             }
           },
+          "401": {
+            "description" : "Unauthorized"
+          },
           "500": {
-            "description": "Internal server error"
+            "description" : "Internal service error"
           }
         }
       }
@@ -141,96 +150,6 @@
     }
   ],
   "components": {
-    "schemas": {
-      "Error": {
-        "type": "object",
-        "properties": {
-          "statusCode": {
-            "type": "integer"
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "statusCode",
-          "message"
-        ]
-      }
-    },
-    "responses": {
-      "NotFound": {
-        "description": "NOT FOUND",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "examples": {
-              "ActorNotFound": {
-                "value": {
-                  "statusCode": 404,
-                  "message": "Could not find actor"
-                }
-              },
-              "HenvendelesNotFound": {
-                "value": {
-                  "statusCode": 404,
-                  "message": "No henvendelse with Id: {id}"
-                }
-              }
-            }
-          }
-        }
-      },
-      "BadRequest": {
-        "description": "BAD REQUEST",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "examples": {
-              "MissingRequiredInput": {
-                "value": {
-                  "statusCode": 400,
-                  "message": "Missing required input"
-                }
-              }
-            }
-          }
-        }
-      },
-      "InternalServerError": {
-        "description": "Internal server error",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/Error"
-            },
-            "examples": {
-              "InternalError": {
-                "value": {
-                  "statusCode": 500,
-                  "message": "Service unavailable"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "parameters": {
-      "X-Correlation-ID": {
-        "name": "X-Correlation-ID",
-        "in": "header",
-        "required": true,
-        "description": "Unik UUID for inkommende request",
-        "schema": {
-          "type": "string"
-        }
-      }
-    },
     "securitySchemes": {
       "Authorization": {
         "type": "http",

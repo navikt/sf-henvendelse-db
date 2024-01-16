@@ -79,6 +79,14 @@
             width: 20ch;
         }
 
+        th#lastmodifiedColumn {
+            width: 26ch;
+        }
+
+        th#bySFColumn {
+            width: 5ch;
+        }
+
         #authorization-message {
             color: red;
             font-weight: bold;
@@ -139,7 +147,7 @@
         const tableContainer = document.getElementById('table-container');
 
         tableContainer.innerHTML = '<table class="blueTable">' +
-            '<thead><tr><th id="idColumn">ID</th><th id="aktoridColumn">Aktor ID</th><th>JSON</th><th>Last Modified</th><th>Last Modified By SF</th></tr></thead><tbody>' +
+            '<thead><tr><th id="idColumn">ID</th><th id="aktoridColumn">Aktor ID</th><th>JSON</th><th id ="lastmodifiedColumn">Last Modified</th><th id="bySFColumn">By SF</th></tr></thead><tbody>' +
             records.map(record =>
                 `<tr>
                     <td>${record.id}</td>
@@ -152,8 +160,8 @@
             '</tbody>' +
             '<tfoot>' +
             '<tr><td colspan="5"><span id="sampletext"></span></td></tr>' +
-            '<tr><td colspan="5"><div class="links"><a href="#" onclick="loadPreviousPage()">&laquo;</a>' +
-            '<span id="currentPage"></span><a href="#" <button onclick="loadNextPage()">Next</button>>&raquo;</a></div></td>' +
+            '<tr><td colspan="5"><div class="links"><a onclick="loadFirstPage()">&lsaquo;</a><a onclick="loadPreviousPage()">&laquo;</a>' +
+            '<span id="currentPage"></span><a onclick="loadNextPage()">&raquo;</a><a onclick="loadLastPage()">&rsaquo;</a></div></td>' +
             '</tr>' +
             '</tfoot>'
             '</table>';
@@ -162,13 +170,21 @@
         const currentPageElement = document.getElementById('currentPage');
         const sampleTextElement = document.getElementById('sampletext');
         currentPageElement.textContent = `Page ${currentPage} of ${pageCount}`;
-        sampleTextElement.textContent = `Showing ${pageSize} of ${count} records)`;
+        sampleTextElement.textContent = `Showing ${pageSize} of ${count} records`;
     };
 
     const loadPreviousPage = () => {
         if (currentPage > 1) {
             loadTablePage(currentPage - 1);
         }
+    };
+
+    const loadFirstPage = () => {
+        loadTablePage(1);
+    };
+
+    const loadLastPage = () => {
+        loadTablePage(pageCount);
     };
 
     const loadNextPage = () => {
