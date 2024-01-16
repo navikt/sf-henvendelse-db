@@ -7,43 +7,6 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <style>
-        .dropbtn {
-            background-color: #3498DB;
-            color: white;
-            padding: 16px;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .dropbtn:hover, .dropbtn:focus {
-            background-color: #2980B9;
-        }
-
-        .datasetDropdownHolder {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f1f1f1;
-            min-width: 160px;
-            overflow: auto;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-        }
-
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        a:hover {background-color: #ddd}
-
         .show {display: block;}
 
         table.blueTable {
@@ -94,12 +57,19 @@
             font-size: 14px;
         }
         table.blueTable tfoot .links {
-            text-align: right;
+            /*text-align: right;*/
         }
         table.blueTable tfoot .links a{
             display: inline-block;
             background: #1C6EA4;
             color: #FFFFFF;
+            padding: 2px 8px;
+            border-radius: 5px;
+        }
+        table.blueTable tfoot .links span{
+            display: inline-block;
+            background: #1C6EA4;
+            color: #000000;
             padding: 2px 8px;
             border-radius: 5px;
         }
@@ -126,50 +96,6 @@
 <div id="report"></div>
 <br>
 <div id="testreport"></div>
-
-<table class="blueTable">
-    <thead>
-    <tr>
-        <th>head1</th>
-        <th>head2</th>
-        <th>head3</th>
-        <th>head4</th>
-    </tr>
-    </thead>
-    <tfoot>
-    <tr>
-        <td colspan="4">
-            <div class="links"><a href="#">&laquo;</a> <a class="active" href="#">1</a> <a href="#">2</a> <a href="#">3</a> <a href="#">4</a> <a href="#">&raquo;</a></div>
-        </td>
-    </tr>
-    </tfoot>
-    <tbody>
-    <tr>
-        <td>cell1_1</td>
-        <td>cell2_1</td>
-        <td>cell3_1</td>
-        <td>cell4_1</td>
-    </tr>
-    <tr>
-        <td>cell1_2</td>
-        <td>cell2_2</td>
-        <td>cell3_2</td>
-        <td>cell4_2</td>
-    </tr>
-    <tr>
-        <td>cell1_3</td>
-        <td>cell2_3</td>
-        <td>cell3_3</td>
-        <td>cell4_3</td>
-    </tr>
-    <tr>
-        <td>cell1_4</td>
-        <td>cell2_4</td>
-        <td>cell3_4</td>
-        <td>cell4_4</td>
-    </tr>
-    </tbody>
-</table>
 
 <script>
     let currentPage = 1;
@@ -213,12 +139,19 @@
                 </tr>`
             ).join('') +
             '</tbody>' +
-            '<tfoot><tr><td colspan="4"><div class="links"><a href="#" onclick="loadPreviousPage()">&laquo;</a><span id="currentPage"></span><a href="#" <button onclick="loadNextPage()">Next</button>>&raquo;</a></div></td></tr></tfoot>'
+            '<tfoot>' +
+            '<tr><td colspan="5"><span id="sampletext"></span></td></tr>' +
+            '<tr><td colspan="5"><div class="links"><a href="#" onclick="loadPreviousPage()">&laquo;</a>' +
+            '<span id="currentPage"></span><a href="#" <button onclick="loadNextPage()">Next</button>>&raquo;</a></div></td>' +
+            '</tr>' +
+            '</tfoot>'
             '</table>';
 
         // Update current page information
         const currentPageElement = document.getElementById('currentPage');
-        currentPageElement.textContent = `Page ${currentPage} of ${pageCount} (showing ${pageSize} of ${count} records)`;
+        const sampleTextElement = document.getElementById('sampletext');
+        currentPageElement.textContent = `Page ${currentPage} of ${pageCount}`;
+        sampleTextElement.textContent = `Showing ${pageSize} of ${count} records)`;
     };
 
     const loadPreviousPage = () => {

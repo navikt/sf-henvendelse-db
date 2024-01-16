@@ -129,7 +129,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "description": "Internal server error"
           }
         }
       }

@@ -16,6 +16,7 @@ import org.http4k.routing.static
 import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
+import java.io.File
 import java.io.StringWriter
 import java.lang.Exception
 import java.time.LocalDateTime
@@ -128,6 +129,7 @@ object Application {
             }
         },
         "/internal/view" bind Method.GET to {
+            File("/tmp/latestViewRequest").writeText(it.toMessage())
             val page = it.query("page")!!.toLong()
             val count = postgresDatabase.count()
             val result = postgresDatabase.view(page, viewPageSize)
