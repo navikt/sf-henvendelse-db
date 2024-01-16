@@ -118,6 +118,7 @@
     let count = 0;
     let pageCount = 1;
     let authToken = '';
+    let countdownInterval;
 
     window.onload = function() {
         console.log("Do on load");
@@ -206,6 +207,9 @@
             const tokenData = parseJwt(authToken);
             const expirationTime = tokenData.exp * 1000; // Convert seconds to milliseconds
 
+            // Clear previous countdown interval
+            clearInterval(countdownInterval);
+
             // Calculate remaining time
             const now = Date.now();
             const remainingTime = expirationTime - now;
@@ -216,6 +220,22 @@
 
             // Display expiration info
             document.getElementById('expiration-info').textContent = `Token expires in ${minutes} minutes and ${seconds} seconds.`;
+
+            // Update the countdown every second
+            countdownInterval = setInterval(() => {
+                const now = Date.now();
+                const remainingTime = expirationTime - now;
+
+                // If the token has expired, clear the interval and show an expired message
+                if (remainingTime <= 0) {
+                    clearInterval(countdownInterval);
+                    document.getElementById('expiration-info').textContent = 'Token has expired.';
+                } else {
+                    const minutes = Math.floor(remainingTime / (1000 * 60));
+                    const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+                    document.getElementById('expiration-info').textContent = `Token expires in ${minutes} minutes and ${seconds} seconds.`;
+                }
+            }, 1000);
         } catch (error) {
             document.getElementById('authorization-message').textContent = 'Invalid JWT token format.';
             document.getElementById('expiration-info').textContent = '';
