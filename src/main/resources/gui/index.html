@@ -10,6 +10,7 @@
         .show {display: block;}
 
         table.blueTable {
+            font-family: 'Courier New', Courier, monospace;
             border: 1px solid #1C6EA4;
             background-color: #EEEEEE;
             width: 100%;
@@ -56,22 +57,31 @@
         table.blueTable tfoot td {
             font-size: 14px;
         }
-        table.blueTable tfoot .links {
-            /*text-align: right;*/
-        }
-        table.blueTable tfoot .links a{
+        table.blueTable tfoot a{
             display: inline-block;
             background: #1C6EA4;
             color: #FFFFFF;
             padding: 2px 8px;
             border-radius: 5px;
         }
-        table.blueTable tfoot .links span{
+        table.blueTable tfoot span{
             display: inline-block;
-            background: #1C6EA4;
             color: #000000;
             padding: 2px 8px;
             border-radius: 5px;
+        }
+
+        th#idColumn {
+            width: 18ch;
+        }
+
+        th#aktoridColumn {
+            width: 20ch;
+        }
+
+        #authorization-message {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -84,18 +94,13 @@
     <input type="text" id="token" placeholder="Enter Bearer Token">
     <button onclick="authorize()">Authorize</button>
 </div>
+<br/>
+
+<div id="authorization-message"></div>
 
 <div id="table-container">
     <!-- Records will be loaded here dynamically -->
 </div>
-
-<div id="pagination">
-    <button onclick="loadPreviousPage()">Previous</button>
-    <button onclick="loadNextPage()">Next</button>
-</div>
-<div id="report"></div>
-<br>
-<div id="testreport"></div>
 
 <script>
     let currentPage = 1;
@@ -118,6 +123,12 @@
             }
         });
 
+        if (response.status === 401) {
+            // Unauthorized
+            document.getElementById('authorization-message').textContent = 'Unauthorized. Please enter a valid Authorization Token.';
+            return;
+        }
+
         const data = await response.json();
         const records = data.records;
         currentPage = data.page
@@ -128,7 +139,7 @@
         const tableContainer = document.getElementById('table-container');
 
         tableContainer.innerHTML = '<table class="blueTable">' +
-            '<thead><tr><th>ID</th><th>Aktor ID</th><th>JSON</th><th>Last Modified</th><th>Last Modified By SF</th></tr></thead><tbody>' +
+            '<thead><tr><th id="idColumn">ID</th><th id="aktoridColumn">Aktor ID</th><th>JSON</th><th>Last Modified</th><th>Last Modified By SF</th></tr></thead><tbody>' +
             records.map(record =>
                 `<tr>
                     <td>${record.id}</td>
