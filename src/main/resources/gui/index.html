@@ -106,6 +106,7 @@
 <br/>
 
 <div id="authorization-message"></div>
+<div id="expiration-info"></div>
 
 <div id="table-container">
     <!-- Records will be loaded here dynamically -->
@@ -172,6 +173,8 @@
         const sampleTextElement = document.getElementById('sampletext');
         currentPageElement.textContent = `Page ${currentPage} of ${pageCount}`;
         sampleTextElement.textContent = `Showing ${pageSize} of ${count} records`;
+
+        document.getElementById('authorization-message').textContent = '';
     };
 
     const loadPreviousPage = () => {
@@ -197,11 +200,40 @@
 
     const authorize = () => {
         authToken = document.getElementById('token').value;
-        // You may want to add some validation for the token before using it
         console.log(`Authorization token set: ${authToken}`);
-        // Now, you can use authToken in the Authorization header for subsequent calls
+        // Parse the JWT token to get expiration time
+        try {
+            const tokenData = parseJwt(authToken);
+            const expirationTime = tokenData.exp * 1000; // Convert seconds to milliseconds
+
+            // Calculate remaining time
+            const now = Date.now();
+            const remainingTime = expirationTime - now;
+
+            // Convert remaining time to minutes and seconds
+            const minutes = Math.floor(remainingTime / (1000 * 60));
+            const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+            // Display expiration info
+            document.getElementById('expiration-info').textContent = `Token expires in ${minutes} minutes and ${seconds} seconds.`;
+        } catch (error) {
+            document.getElementById('authorization-message').textContent = 'Invalid JWT token format.';
+            document.getElementById('expiration-info').textContent = '';
+        }
+
         loadTablePage(currentPage);
     };
+
+    // Function to parse JWT token
+    function parseJwt(token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    }
 </script>
 
 </body>
