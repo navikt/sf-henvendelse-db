@@ -1,3 +1,5 @@
 package no.nav.sf.henvendelse.db
 
-fun main() = Application.start()
+val application = Application()
+
+fun main() = application.start()

@@ -203,13 +203,12 @@
         authToken = document.getElementById('token').value;
         console.log(`Authorization token set: ${authToken}`);
         // Parse the JWT token to get expiration time
+        document.getElementById('expiration-info').textContent = '';
+        // Clear previous countdown interval
+        clearInterval(countdownInterval);
         try {
             const tokenData = parseJwt(authToken);
             const expirationTime = tokenData.exp * 1000; // Convert seconds to milliseconds
-
-            // Clear previous countdown interval
-            clearInterval(countdownInterval);
-
             // Calculate remaining time
             const now = Date.now();
             const remainingTime = expirationTime - now;

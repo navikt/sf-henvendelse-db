@@ -5,6 +5,8 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.prometheus.client.exporter.common.TextFormat
 import mu.KotlinLogging
+import no.nav.sf.henvendelse.api.proxy.token.DefaultTokenValidator
+import no.nav.sf.henvendelse.api.proxy.token.TokenValidator
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -26,7 +28,7 @@ const val NAIS_ISALIVE = "/internal/isAlive"
 const val NAIS_ISREADY = "/internal/isReady"
 const val NAIS_METRICS = "/internal/metrics"
 
-object Application {
+class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) {
     private val log = KotlinLogging.logger { }
 
     private val gson = GsonBuilder().registerTypeAdapter(
@@ -130,11 +132,15 @@ object Application {
         },
         "/internal/view" bind Method.GET to {
             File("/tmp/latestViewRequest").writeText(it.toMessage())
-            val page = it.query("page")!!.toLong()
-            val count = postgresDatabase.count()
-            val result = postgresDatabase.view(page, viewPageSize)
-            val viewData = ViewData(page, pageCount(count), viewPageSize, count, result)
-            Response(Status.OK).body(gson.toJson(viewData))
+            if (tokenValidator.firstValidToken(it).isPresent) {
+                val page = it.query("page")!!.toLong()
+                val count = postgresDatabase.count()
+                val result = postgresDatabase.view(page, viewPageSize)
+                val viewData = ViewData(page, pageCount(count), viewPageSize, count, result)
+                Response(Status.OK).body(gson.toJson(viewData))
+            } else {
+                Response(Status.UNAUTHORIZED)
+            }
         }
     )
 

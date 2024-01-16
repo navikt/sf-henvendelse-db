@@ -1,49 +1,52 @@
-package no.nav.sf.henvendelse.db.token
+package no.nav.sf.henvendelse.api.proxy.token
 
 import mu.KotlinLogging
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
+import no.nav.security.token.support.core.jwt.JwtToken
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
 import no.nav.sf.henvendelse.db.toNavRequest
 import org.http4k.core.Request
+import java.io.File
 import java.net.URL
+import java.util.Optional
 
 const val env_AZURE_APP_WELL_KNOWN_URL = "AZURE_APP_WELL_KNOWN_URL"
 const val env_AZURE_APP_CLIENT_ID = "AZURE_APP_CLIENT_ID"
+const val env_AUDIENCE_TOKEN_SERVICE_URL = "AUDIENCE_TOKEN_SERVICE_URL"
+const val env_AUDIENCE_TOKEN_SERVICE_ALIAS = "AUDIENCE_TOKEN_SERVICE_ALIAS"
+const val env_AUDIENCE_TOKEN_SERVICE = "AUDIENCE_TOKEN_SERVICE"
 
-const val claim_NAME = "name"
+interface TokenValidator {
+    fun firstValidToken(request: Request): Optional<JwtToken>
+}
 
-object TokenValidation {
+class DefaultTokenValidator : TokenValidator {
+    private val azureAlias = "azure"
+    private val azureUrl = System.getenv(env_AZURE_APP_WELL_KNOWN_URL)
+    private val azureAudience = System.getenv(env_AZURE_APP_CLIENT_ID)?.split(',') ?: listOf()
 
     private val log = KotlinLogging.logger { }
 
-    val validators: MutableMap<String, JwtTokenValidationHandler?> = mutableMapOf()
-
-    private fun addValidator(clientId: String): JwtTokenValidationHandler {
-        val validationHandler = JwtTokenValidationHandler(
-            MultiIssuerConfiguration(
-                mapOf(
-                    "azure" to IssuerProperties(
-                        URL(System.getenv(env_AZURE_APP_WELL_KNOWN_URL)),
-                        listOf(clientId)
-                    )
-                )
-            )
+    private val multiIssuerConfiguration = MultiIssuerConfiguration(
+        mapOf(
+            azureAlias to IssuerProperties(URL(azureUrl), azureAudience)
         )
-        validators[clientId] = validationHandler
-        return validationHandler
-    }
+    )
 
-    fun validatorFor(clientId: String): JwtTokenValidationHandler {
-        return validators.get(clientId) ?: addValidator(clientId)
-    }
+    private val jwtTokenValidationHandler = JwtTokenValidationHandler(multiIssuerConfiguration)
 
-    fun containsValidToken(request: Request, clientId: String): Boolean {
-        val firstValidToken = validatorFor(clientId).getValidatedTokens(request.toNavRequest()).firstValidToken
-        // For separation of OBO token and machine token:
-        // if (firstValidToken.isPresent) {
-        // log.info { "Contains name claim: ${(firstValidToken.get().jwtTokenClaims.get("name") != null)}" }
-        // }
+    fun containsValidToken(request: Request): Boolean {
+        val firstValidToken = jwtTokenValidationHandler.getValidatedTokens(request.toNavRequest()).firstValidToken
         return firstValidToken.isPresent
+    }
+
+    override fun firstValidToken(request: Request): Optional<JwtToken> {
+        lateinit var result: Optional<JwtToken>
+        result = jwtTokenValidationHandler.getValidatedTokens(request.toNavRequest()).firstValidToken
+        if (!result.isPresent) {
+            File("/tmp/novalidtoken").writeText(request.toMessage())
+        }
+        return result
     }
 }
