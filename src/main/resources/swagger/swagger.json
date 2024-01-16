@@ -56,7 +56,9 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": "{ \n  \"id\" : \"id\",\n  \"aktorId\" : \"aktorId\",\n  \"etc\" : \"etc...\"\n}"
+              "schema": {
+                "type": "object"
+              }
             }
           }
         },
@@ -121,7 +123,12 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": "[{ \"id\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"id\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
             }
           }
         },
