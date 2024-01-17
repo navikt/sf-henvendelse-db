@@ -21,7 +21,6 @@ import org.http4k.routing.static
 import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
-import java.io.File
 import java.io.StringWriter
 import java.lang.Exception
 import java.time.LocalDateTime
@@ -71,6 +70,13 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
                 }
             }
         }
+    }
+
+    /**
+     * work in progress
+     */
+    fun HttpHandler.authenticate(): HttpHandler {
+        return { request -> this.invoke(request) }
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
