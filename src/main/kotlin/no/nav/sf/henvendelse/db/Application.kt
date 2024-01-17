@@ -7,11 +7,14 @@ import io.prometheus.client.exporter.common.TextFormat
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.api.proxy.token.DefaultTokenValidator
 import no.nav.sf.henvendelse.api.proxy.token.TokenValidator
+import no.nav.sf.henvendelse.api.proxy.token.isFromSalesforce
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.routing.PathMethod
 import org.http4k.routing.ResourceLoader
+import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.http4k.routing.static
@@ -50,6 +53,26 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
 //        postgresDatabase.henteHenvendelse("notthere")
     }
 
+    /**
+     * authbind: a DSL extention of bind that takes care of authentication with use of tokenValidator
+     */
+    infix fun String.authbind(method: Method): AuthRouteBuilder {
+        return AuthRouteBuilder(this, method, tokenValidator)
+    }
+
+    data class AuthRouteBuilder(val path: String, val method: Method, private val tokenValidator: TokenValidator) {
+        infix fun to(action: HttpHandler): RoutingHttpHandler {
+            return PathMethod(path, method) to { request ->
+                val token = tokenValidator.firstValidToken(request)
+                if (token.isPresent) {
+                    action(request)
+                } else {
+                    Response(Status.UNAUTHORIZED)
+                }
+            }
+        }
+    }
+
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
 
     fun api(): HttpHandler = routes(
@@ -71,8 +94,12 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
         },
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
         "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
+        "/tryit" authbind Method.GET to {
+            Response(Status.OK).body(tokenValidator.firstValidToken(it).get().isFromSalesforce().toString() + " azp_name " + tokenValidator.firstValidToken(it).get().jwtTokenClaims["azp_name"])
+        },
         "/henvendelse" bind Method.POST to {
-            if (tokenValidator.firstValidToken(it).isPresent) {
+            val firstValidToken = tokenValidator.firstValidToken(it)
+            if (firstValidToken.isPresent) {
                 try {
                     val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
                     val id = jsonObj["id"]?.asString
@@ -83,7 +110,7 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
                     } else if (aktorid == null) {
                         Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
                     } else {
-                        val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
+                        val result = postgresDatabase.upsertHenvendelse(id, aktorid, json, firstValidToken.get().isFromSalesforce())
                         Response(Status.OK).body(gson.toJson(result))
                     }
                 } catch (_: Exception) {
@@ -94,10 +121,11 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
             }
         },
         "/henvendelser" bind Method.PUT to {
-            if (tokenValidator.firstValidToken(it).isPresent) {
+            val firstValidToken = tokenValidator.firstValidToken(it)
+            if (firstValidToken.isPresent) {
                 try {
                     val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
-                    log.info { "Batch henvendelser called with ${jsonArray.size()} items" }
+                    log.info { "Batch PUT henvendelser called with ${jsonArray.size()} items" }
                     val updatedIds: MutableList<String> = mutableListOf()
                     if (jsonArray.any { e -> (e as JsonObject)["id"] == null }) {
                         Response(Status.BAD_REQUEST).body("At least one item is missing field id in json")
@@ -110,7 +138,8 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
                             val result = postgresDatabase.upsertHenvendelse(
                                 jsonObj["id"].asString,
                                 jsonObj["aktorId"].asString,
-                                json
+                                json,
+                                firstValidToken.get().isFromSalesforce()
                             )
                             result?.let { updatedIds.add(result.id) }
                         }
@@ -151,7 +180,6 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
             }
         },
         "/internal/view" bind Method.GET to {
-            File("/tmp/latestViewRequest").writeText(it.toMessage())
             if (tokenValidator.firstValidToken(it).isPresent) {
                 val page = it.query("page")!!.toLong()
                 val count = postgresDatabase.count()
