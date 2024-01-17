@@ -72,62 +72,82 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
         "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
         "/henvendelse" bind Method.POST to {
-            try {
-                val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
-                val id = jsonObj["id"]?.asString
-                val aktorid = jsonObj["aktorId"]?.asString
-                val json = it.bodyString()
-                if (id == null) {
-                    Response(Status.BAD_REQUEST).body("Missing field id in json")
-                } else if (aktorid == null) {
-                    Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
-                } else {
-                    val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
-                    Response(Status.OK).body(gson.toJson(result))
+            if (tokenValidator.firstValidToken(it).isPresent) {
+                try {
+                    val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
+                    val id = jsonObj["id"]?.asString
+                    val aktorid = jsonObj["aktorId"]?.asString
+                    val json = it.bodyString()
+                    if (id == null) {
+                        Response(Status.BAD_REQUEST).body("Missing field id in json")
+                    } else if (aktorid == null) {
+                        Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
+                    } else {
+                        val result = postgresDatabase.upsertHenvendelse(id, aktorid, json)
+                        Response(Status.OK).body(gson.toJson(result))
+                    }
+                } catch (_: Exception) {
+                    Response(Status.BAD_REQUEST).body("Failed to parse request body as json object")
                 }
-            } catch (_: Exception) {
-                Response(Status.BAD_REQUEST).body("Failed to parse request body as json object")
+            } else {
+                Response(Status.UNAUTHORIZED)
             }
         },
         "/henvendelser" bind Method.PUT to {
-            try {
-                val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
-                log.info { "Batch henvendelser called with ${jsonArray.size()} items" }
-                val updatedIds: MutableList<String> = mutableListOf()
-                if (jsonArray.any { e -> (e as JsonObject)["id"] == null }) {
-                    Response(Status.BAD_REQUEST).body("At least one item is missing field id in json")
-                } else if (jsonArray.any { e -> (e as JsonObject)["aktorId"] == null }) {
-                    Response(Status.BAD_REQUEST).body("At least one item is missing field aktorId in json")
-                } else {
-                    jsonArray.forEach { e ->
-                        val jsonObj = e as JsonObject
-                        val json = jsonObj.toString()
-                        val result = postgresDatabase.upsertHenvendelse(jsonObj["id"].asString, jsonObj["aktorId"].asString, json)
-                        result?.let { updatedIds.add(result.id) }
+            if (tokenValidator.firstValidToken(it).isPresent) {
+                try {
+                    val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
+                    log.info { "Batch henvendelser called with ${jsonArray.size()} items" }
+                    val updatedIds: MutableList<String> = mutableListOf()
+                    if (jsonArray.any { e -> (e as JsonObject)["id"] == null }) {
+                        Response(Status.BAD_REQUEST).body("At least one item is missing field id in json")
+                    } else if (jsonArray.any { e -> (e as JsonObject)["aktorId"] == null }) {
+                        Response(Status.BAD_REQUEST).body("At least one item is missing field aktorId in json")
+                    } else {
+                        jsonArray.forEach { e ->
+                            val jsonObj = e as JsonObject
+                            val json = jsonObj.toString()
+                            val result = postgresDatabase.upsertHenvendelse(
+                                jsonObj["id"].asString,
+                                jsonObj["aktorId"].asString,
+                                json
+                            )
+                            result?.let { updatedIds.add(result.id) }
+                        }
+                        log.info { "Upserted ${updatedIds.size} items" }
+                        Response(Status.OK).body("Upserted ${updatedIds.size} items")
                     }
-                    log.info { "Upserted ${updatedIds.size} items" }
-                    Response(Status.OK).body("Upserted ${updatedIds.size} items")
+                } catch (_: Exception) {
+                    Response(Status.BAD_REQUEST).body("Failed to parse request body as json array")
                 }
-            } catch (_: Exception) {
-                Response(Status.BAD_REQUEST).body("Failed to parse request body as json array")
+            } else {
+                Response(Status.UNAUTHORIZED)
             }
         },
         "/henvendelse" bind Method.GET to {
-            val id = it.query("id")
-            if (id == null) {
-                Response(Status.BAD_REQUEST).body("Missing parameter id")
+            if (tokenValidator.firstValidToken(it).isPresent) {
+                val id = it.query("id")
+                if (id == null) {
+                    Response(Status.BAD_REQUEST).body("Missing parameter id")
+                } else {
+                    val result = postgresDatabase.henteHenvendelse(id)
+                    Response(Status.OK).body(gson.toJson(result))
+                }
             } else {
-                val result = postgresDatabase.henteHenvendelse(id)
-                Response(Status.OK).body(gson.toJson(result))
+                Response(Status.UNAUTHORIZED)
             }
         },
         "/henvendelser" bind Method.GET to {
-            val aktorid = it.query("aktorid")
-            if (aktorid == null) {
-                Response(Status.BAD_REQUEST).body("Missing parameter aktorid")
+            if (tokenValidator.firstValidToken(it).isPresent) {
+                val aktorid = it.query("aktorid")
+                if (aktorid == null) {
+                    Response(Status.BAD_REQUEST).body("Missing parameter aktorid")
+                } else {
+                    val result = postgresDatabase.henteHenvendelserByAktorid(aktorid)
+                    Response(Status.OK).body(gson.toJson(result))
+                }
             } else {
-                val result = postgresDatabase.henteHenvendelserByAktorid(aktorid)
-                Response(Status.OK).body(gson.toJson(result))
+                Response(Status.UNAUTHORIZED)
             }
         },
         "/internal/view" bind Method.GET to {
