@@ -40,7 +40,7 @@ class Application(
     fun start() {
         log.info { "Starting" }
         apiServer(8080).start()
-        // postgresDatabase.create()
+        database.create()
         // val resultUpsert = postgresDatabase.upsertHenvendelse("test3b", "aktorid3", """{ "id" : "test3b", "data" : "3b" }""")
         // postgresDatabase.henteAlle()
     }
