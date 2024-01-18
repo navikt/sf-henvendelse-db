@@ -23,13 +23,6 @@ class ApplicationTest {
     val mockGuiHandler = mockk<GuiHandler>()
     val application = Application(mockTokenValidator, mockDatabase, mockGuiHandler)
     var jwtTokenClaims: JwtTokenClaims = JwtTokenClaims(JWTClaimsSet.Builder().build())
-/*
-jwtTokenClaims = JwtTokenClaims(
-            JWTClaimsSet.Builder()
-                .claim(claim_azp_name, "azp-name")
-                .build()
-        )
- */
 
     @BeforeEach
     fun setup() {
@@ -56,6 +49,29 @@ jwtTokenClaims = JwtTokenClaims(
                 json =
                     """{ "id" : "test", "aktorId" : "aktor1", "data" : "test-data" }""",
                 updateBySF = false
+            )
+        }
+    }
+
+    @Test
+    fun `upsertHenvendelseHandler should call upsertHenvendelse with updated by SF if token has salesforce as source in azp_name`() {
+        val request = Request(Method.POST, "/henvendelse")
+            .body("""{ "id" : "test", "aktorId" : "aktor1", "data" : "test-data" }""")
+
+        every { mockDatabase.upsertHenvendelse(any(), any(), any(), any()) } returns null
+
+        jwtTokenClaims = JwtTokenClaims(JWTClaimsSet.Builder().claim("azp_name", "dev-external:teamcrm:salesforce").build())
+        every { mockToken.jwtTokenClaims } returns jwtTokenClaims
+
+        application.upsertHenvendelseHandler(request)
+
+        verify {
+            mockDatabase.upsertHenvendelse(
+                id = "test",
+                aktorid = "aktor1",
+                json =
+                    """{ "id" : "test", "aktorId" : "aktor1", "data" : "test-data" }""",
+                updateBySF = true
             )
         }
     }
