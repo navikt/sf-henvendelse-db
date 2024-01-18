@@ -1,5 +1,6 @@
 package no.nav.sf.henvendelse.db
-import no.nav.sf.henvendelse.db.token.TokenValidatorMock
+import io.mockk.mockk
+import no.nav.sf.henvendelse.api.proxy.token.TokenValidator
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Status
@@ -7,7 +8,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class ApplicationTest {
-    val application = Application(TokenValidatorMock())
+    val tokenValidatorMock = mockk<TokenValidator>()
+    val databaseMock = mockk<PostgresDatabase>()
+    val guiHandlerMock = mockk<GuiHandler>()
+    val application = Application(tokenValidatorMock, databaseMock, guiHandlerMock)
 
     /*
     @Test
@@ -18,9 +22,7 @@ class ApplicationTest {
         val response = application.upsertHenvendelseHandler(request)
 
         assertEquals(Status.OK, response.status)
-        // Add more assertions based on expected behavior
     }
-
      */
 
     @Test
@@ -42,7 +44,6 @@ class ApplicationTest {
         val response = application.batchUpsertHenvendelserHandler(request)
 
         assertEquals(Status.OK, response.status)
-        // Add more assertions based on expected behavior
     }
 
      */
@@ -55,6 +56,5 @@ class ApplicationTest {
         val response = application.batchUpsertHenvendelserHandler(request)
 
         assertEquals(Status.BAD_REQUEST, response.status)
-        // Add more assertions based on expected behavior
     }
 }

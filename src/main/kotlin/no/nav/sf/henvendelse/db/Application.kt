@@ -25,13 +25,17 @@ import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
 import java.time.LocalDateTime
 
-class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) {
-    private val log = KotlinLogging.logger { }
+private val gson = GsonBuilder().registerTypeAdapter(
+    LocalDateTime::class.java,
+    LocalDateTimeTypeAdapter()
+).create()
 
-    private val gson = GsonBuilder().registerTypeAdapter(
-        LocalDateTime::class.java,
-        LocalDateTimeTypeAdapter()
-    ).create()
+class Application(
+    val tokenValidator: TokenValidator = DefaultTokenValidator(),
+    val database: PostgresDatabase = PostgresDatabase(),
+    val gui: GuiHandler = GuiHandler(database, gson)
+) {
+    private val log = KotlinLogging.logger { }
 
     fun start() {
         log.info { "Starting" }
@@ -72,7 +76,7 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
         "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
         "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
-        "/internal/view" authbind Method.GET to Gui.viewHandler,
+        "/internal/view" authbind Method.GET to gui.viewHandler,
         "/henvendelse" authbind Method.POST to upsertHenvendelseHandler,
         "/henvendelser" authbind Method.PUT to batchUpsertHenvendelserHandler,
         "/henvendelse" authbind Method.GET to fetchHenvendelseByIdHandler,
@@ -89,7 +93,7 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
             } else if (aktorid == null) {
                 Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
             } else {
-                val result = postgresDatabase.upsertHenvendelse(
+                val result = database.upsertHenvendelse(
                     id = id,
                     aktorid = aktorid,
                     json = it.bodyString(),
@@ -114,7 +118,7 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
             } else {
                 jsonArray.forEach { e ->
                     val jsonObj = e as JsonObject
-                    val result = postgresDatabase.upsertHenvendelse(
+                    val result = database.upsertHenvendelse(
                         id = jsonObj["id"].asString,
                         aktorid = jsonObj["aktorId"].asString,
                         json = jsonObj.toString(),
@@ -135,7 +139,7 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
         if (id == null) {
             Response(Status.BAD_REQUEST).body("Missing parameter id")
         } else {
-            val result = postgresDatabase.henteHenvendelse(id)
+            val result = database.henteHenvendelse(id)
             Response(Status.OK).body(gson.toJson(result))
         }
     }
@@ -145,7 +149,7 @@ class Application(val tokenValidator: TokenValidator = DefaultTokenValidator()) 
         if (aktorid == null) {
             Response(Status.BAD_REQUEST).body("Missing parameter aktorid")
         } else {
-            val result = postgresDatabase.henteHenvendelserByAktorid(aktorid)
+            val result = database.henteHenvendelserByAktorid(aktorid)
             Response(Status.OK).body(gson.toJson(result))
         }
     }
