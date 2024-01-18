@@ -170,10 +170,10 @@
             '</table>';
 
         // Update current page information
-        const currentPageElement = document.getElementById('currentPage');
         const sampleTextElement = document.getElementById('sampletext');
+        const currentPageElement = document.getElementById('currentPage');
+        sampleTextElement.textContent = `Showing ${records.size} of ${count} records`;
         currentPageElement.textContent = `Page ${currentPage} of ${pageCount}`;
-        sampleTextElement.textContent = `Showing ${pageSize} of ${count} records`;
 
         document.getElementById('authorization-message').textContent = '';
     };

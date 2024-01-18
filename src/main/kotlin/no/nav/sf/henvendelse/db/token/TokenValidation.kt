@@ -3,9 +3,9 @@ package no.nav.sf.henvendelse.api.proxy.token
 import mu.KotlinLogging
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
+import no.nav.security.token.support.core.http.HttpRequest
 import no.nav.security.token.support.core.jwt.JwtToken
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
-import no.nav.sf.henvendelse.db.toNavRequest
 import org.http4k.core.Request
 import java.io.File
 import java.net.URL
@@ -13,9 +13,6 @@ import java.util.Optional
 
 const val env_AZURE_APP_WELL_KNOWN_URL = "AZURE_APP_WELL_KNOWN_URL"
 const val env_AZURE_APP_CLIENT_ID = "AZURE_APP_CLIENT_ID"
-const val env_AUDIENCE_TOKEN_SERVICE_URL = "AUDIENCE_TOKEN_SERVICE_URL"
-const val env_AUDIENCE_TOKEN_SERVICE_ALIAS = "AUDIENCE_TOKEN_SERVICE_ALIAS"
-const val env_AUDIENCE_TOKEN_SERVICE = "AUDIENCE_TOKEN_SERVICE"
 
 private val log = KotlinLogging.logger { }
 
@@ -36,11 +33,6 @@ class DefaultTokenValidator : TokenValidator {
 
     private val jwtTokenValidationHandler = JwtTokenValidationHandler(multiIssuerConfiguration)
 
-    fun containsValidToken(request: Request): Boolean {
-        val firstValidToken = jwtTokenValidationHandler.getValidatedTokens(request.toNavRequest()).firstValidToken
-        return firstValidToken.isPresent
-    }
-
     override fun firstValidToken(request: Request): Optional<JwtToken> {
         lateinit var result: Optional<JwtToken>
         result = jwtTokenValidationHandler.getValidatedTokens(request.toNavRequest()).firstValidToken
@@ -48,6 +40,18 @@ class DefaultTokenValidator : TokenValidator {
             File("/tmp/novalidtoken").writeText(request.toMessage())
         }
         return result
+    }
+
+    fun Request.toNavRequest(): HttpRequest {
+        val req = this
+        return object : HttpRequest {
+            override fun getHeader(headerName: String): String {
+                return req.header(headerName) ?: ""
+            }
+            override fun getCookies(): Array<HttpRequest.NameValue> {
+                return arrayOf()
+            }
+        }
     }
 }
 

@@ -11,7 +11,6 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
-import java.io.File
 import java.time.LocalDateTime
 
 private val log = KotlinLogging.logger { }
@@ -33,23 +32,21 @@ class PostgresDatabase {
     // That is handled via transaction {} ensuring connections are opened and closed properly
     val database = Database.connect(HikariDataSource(hikariConfig()))
 
-    private fun hikariConfig(): HikariConfig {
-        return HikariConfig().apply {
-            jdbcUrl = "jdbc:postgresql://localhost:$port/$name"
-            driverClassName = "org.postgresql.Driver"
-            addDataSourceProperty("serverName", host)
-            addDataSourceProperty("port", port)
-            addDataSourceProperty("databaseName", name)
-            addDataSourceProperty("user", user)
-            addDataSourceProperty("password", userpassword)
-            minimumIdle = 1
-            maxLifetime = 26000
-            maximumPoolSize = 10
-            connectionTimeout = 250
-            idleTimeout = 10001
-            isAutoCommit = false
-            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
-        }
+    private fun hikariConfig(): HikariConfig = HikariConfig().apply {
+        jdbcUrl = "jdbc:postgresql://localhost:$port/$name" // This is where the cloud db proxy is located in the pod
+        driverClassName = "org.postgresql.Driver"
+        addDataSourceProperty("serverName", host)
+        addDataSourceProperty("port", port)
+        addDataSourceProperty("databaseName", name)
+        addDataSourceProperty("user", user)
+        addDataSourceProperty("password", userpassword)
+        minimumIdle = 1
+        maxLifetime = 26000
+        maximumPoolSize = 10
+        connectionTimeout = 250
+        idleTimeout = 10001
+        isAutoCommit = false
+        transactionIsolation = "TRANSACTION_REPEATABLE_READ"
     }
 
     fun create(dropFirst: Boolean = false) {
@@ -81,55 +78,26 @@ class PostgresDatabase {
         }.resultedValues?.firstOrNull()?.toHenvendelseRecord()
     }
 
-    fun henteHenvendelse(id: String): List<HenvendelseRecord> {
-        val result: MutableList<HenvendelseRecord> = mutableListOf()
-        transaction {
-            val query = Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
-
-            val resultRow = query.toList().map { it.toHenvendelseRecord() }
-            result.addAll(resultRow)
-
-            log.info { "Latest hente result for id $id: $resultRow" }
-            File("/tmp/latesthenteresult").writeText(resultRow.toString())
-            log.info { "hente by id returns ${resultRow.size} entries" }
-        }
-        return result
+    fun henteHenvendelse(id: String): List<HenvendelseRecord> = transaction {
+        Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
+            .toList()
+            .map { it.toHenvendelseRecord() }
     }
 
-    fun henteHenvendelserByAktorid(aktorid: String): List<HenvendelseRecord> {
-        val result: MutableList<HenvendelseRecord> = mutableListOf()
+    fun henteHenvendelserByAktorid(aktorid: String): List<HenvendelseRecord> =
         transaction {
-            val query = Henvendelser.selectAll().andWhere { Henvendelser.aktorid eq aktorid }
-
-            val resultRow = query.toList().map { it.toHenvendelseRecord() }
-            result.addAll(resultRow)
-
-            log.info { "Latest hente aktorid for aktorid $aktorid result: $resultRow" }
-            File("/tmp/latesthenteaktoridresult").writeText(resultRow.toString())
-            log.info { "hente by aktorid returns ${resultRow.size} entries" }
+            Henvendelser.selectAll().andWhere { Henvendelser.aktorid eq aktorid }
+                .toList()
+                .map { it.toHenvendelseRecord() }
         }
-        return result
+
+    fun view(page: Long, pageSize: Int): List<HenvendelseRecord> = transaction {
+        Henvendelser.selectAll().limit(pageSize, (page - 1) * pageSize)
+            .toList()
+            .map { it.toHenvendelseRecord() }
     }
 
-    fun view(page: Long, pageSize: Int = 2): List<HenvendelseRecord> {
-        val offset = (page - 1) * pageSize
-        val result: MutableList<HenvendelseRecord> = mutableListOf()
-        transaction {
-            val query = Henvendelser.selectAll().limit(pageSize, offset)
-            val resultRow = query.toList().map { it.toHenvendelseRecord() }
-            result.addAll(resultRow)
-            log.info { "Latest view result: $resultRow" }
-            File("/tmp/latesthentealleidresult").writeText(resultRow.toString())
-            log.info { "view returns ${resultRow.size} entries" }
-        }
-        return result
-    }
-
-    fun count(): Long {
-        var result = 0L
-        transaction {
-            result = Henvendelser.selectAll().count()
-        }
-        return result
+    fun count(): Long = transaction {
+        Henvendelser.selectAll().count()
     }
 }
