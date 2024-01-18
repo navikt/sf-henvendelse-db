@@ -172,7 +172,7 @@
         // Update current page information
         const sampleTextElement = document.getElementById('sampletext');
         const currentPageElement = document.getElementById('currentPage');
-        sampleTextElement.textContent = `Showing ${records.size} of ${count} records`;
+        sampleTextElement.textContent = `Showing ${records.length} of ${count} records`;
         currentPageElement.textContent = `Page ${currentPage} of ${pageCount}`;
 
         document.getElementById('authorization-message').textContent = '';
