@@ -34,7 +34,7 @@ object Metrics {
     val metricsHandler: HttpHandler = {
         try {
             val metricsString = StringWriter().apply {
-                TextFormat.write004(this, Metrics.cRegistry.metricFamilySamples())
+                TextFormat.write004(this, cRegistry.metricFamilySamples())
             }.toString()
             if (metricsString.isNotEmpty()) {
                 Response(Status.OK).body(metricsString)

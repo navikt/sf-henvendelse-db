@@ -1,5 +1,6 @@
-package no.nav.sf.henvendelse.db.json
+package no.nav.sf.henvendelse.db
 
+import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
@@ -31,3 +32,8 @@ class LocalDateTimeTypeAdapter : TypeAdapter<LocalDateTime?>() {
         }
     }
 }
+
+val gson = GsonBuilder().registerTypeAdapter(
+    LocalDateTime::class.java,
+    LocalDateTimeTypeAdapter()
+).create()

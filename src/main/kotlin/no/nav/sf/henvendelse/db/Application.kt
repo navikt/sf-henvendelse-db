@@ -1,6 +1,5 @@
 package no.nav.sf.henvendelse.db
 
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
@@ -8,7 +7,6 @@ import mu.KotlinLogging
 import no.nav.sf.henvendelse.api.proxy.token.DefaultTokenValidator
 import no.nav.sf.henvendelse.api.proxy.token.TokenValidator
 import no.nav.sf.henvendelse.api.proxy.token.isFromSalesforce
-import no.nav.sf.henvendelse.db.json.LocalDateTimeTypeAdapter
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Request
@@ -23,12 +21,6 @@ import org.http4k.routing.static
 import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
-import java.time.LocalDateTime
-
-private val gson = GsonBuilder().registerTypeAdapter(
-    LocalDateTime::class.java,
-    LocalDateTimeTypeAdapter()
-).create()
 
 class Application(
     val tokenValidator: TokenValidator = DefaultTokenValidator(),
@@ -46,13 +38,11 @@ class Application(
     /**
      * authbind: an extention of bind that takes care of authentication with use of tokenValidator
      */
-    infix fun String.authbind(method: Method): AuthRouteBuilder {
-        return AuthRouteBuilder(this, method, tokenValidator)
-    }
+    infix fun String.authbind(method: Method) = AuthRouteBuilder(this, method, tokenValidator)
 
     data class AuthRouteBuilder(val path: String, val method: Method, private val tokenValidator: TokenValidator) {
-        infix fun to(action: HttpHandler): RoutingHttpHandler {
-            return PathMethod(path, method) to { request ->
+        infix fun to(action: HttpHandler): RoutingHttpHandler =
+            PathMethod(path, method) to { request ->
                 Metrics.apiCalls.labels(path).inc()
                 val token = tokenValidator.firstValidToken(request)
                 if (token.isPresent) {
@@ -61,7 +51,6 @@ class Application(
                     Response(Status.UNAUTHORIZED)
                 }
             }
-        }
     }
 
     fun Request.hasTokenFromSalesforce() = tokenValidator.firstValidToken(this).get().isFromSalesforce()
