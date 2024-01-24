@@ -15,14 +15,8 @@ spec:
     max: 2
   liveness:
     path: /internal/isAlive
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 30
   readiness:
     path: /internal/isReady
-    initialDelay: 5
-    periodSeconds: 5
-    failureThreshold: 30
   preStopHook:
     exec:
       command: [ "/bin/bash", "/pre-stop.sh" ]
@@ -43,9 +37,6 @@ spec:
     sqlInstances:
       - type: POSTGRES_15
         tier: db-f1-micro
-        diskType: SSD
-        highAvailability: true
-        diskSize: 10
         diskAutoresize: true
         autoBackupHour: 6
         databases:
