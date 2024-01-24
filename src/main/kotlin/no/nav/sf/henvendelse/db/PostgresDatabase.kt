@@ -4,7 +4,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -51,12 +50,13 @@ class PostgresDatabase {
                 val dropStatement =
                     TransactionManager.current().connection.prepareStatement("DROP TABLE henvendelser", false)
                 dropStatement.executeUpdate()
+                log.info { "Drop performed" }
             }
 
-            log.info { "Creating table Henvendelser" }
-            SchemaUtils.create(Henvendelser)
+            // log.info { "Creating table Henvendelser" }
+            // SchemaUtils.create(Henvendelser)
         }
-        log.info { "drop and create done" }
+        // log.info { "drop and create done" }
     }
 
     fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {

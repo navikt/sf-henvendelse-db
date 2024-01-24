@@ -21,7 +21,13 @@ object Henvendelser : Table() {
     val lastModifiedBySF = bool("last_modified_by_sf")
 }
 
-data class HenvendelseRecord(val id: String, val aktorid: String, val json: String, val lastModified: LocalDateTime, val lastModifiedBySF: Boolean)
+data class HenvendelseRecord(
+    val id: String,
+    val aktorid: String,
+    val json: String,
+    val lastModified: LocalDateTime,
+    val lastModifiedBySF: Boolean
+)
 
 fun ResultRow.toHenvendelseRecord() =
     HenvendelseRecord(
