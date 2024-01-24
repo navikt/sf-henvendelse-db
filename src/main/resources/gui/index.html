@@ -150,11 +150,11 @@
         const tableContainer = document.getElementById('table-container');
 
         tableContainer.innerHTML = '<table class="blueTable">' +
-            '<thead><tr><th id="idColumn">ID</th><th id="aktoridColumn">Aktor ID</th><th>JSON</th><th id ="lastmodifiedColumn">Last Modified</th><th id="bySFColumn">By SF</th></tr></thead><tbody>' +
+            '<thead><tr><th id="idColumn">KjedeId</th><th id="aktoridColumn">AktorId</th><th>JSON</th><th id ="lastmodifiedColumn">Last Modified</th><th id="bySFColumn">By SF</th></tr></thead><tbody>' +
             records.map(record =>
                 `<tr>
-                    <td>${record.id}</td>
-                    <td>${record.aktorid}</td>
+                    <td>${record.kjedeId}</td>
+                    <td>${record.aktorId}</td>
                     <td>${record.json}</td>
                     <td>${record.lastModified}</td>
                     <td>${record.lastModifiedBySF}</td>

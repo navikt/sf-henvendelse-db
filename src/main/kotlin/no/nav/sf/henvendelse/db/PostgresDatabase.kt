@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -53,19 +54,19 @@ class PostgresDatabase {
                 log.info { "Drop performed" }
             }
 
-            // log.info { "Creating table Henvendelser" }
-            // SchemaUtils.create(Henvendelser)
+            log.info { "Creating table Henvendelser" }
+            SchemaUtils.create(Henvendelser)
+            log.info { "Create done" }
         }
-        // log.info { "drop and create done" }
     }
 
-    fun upsertHenvendelse(id: String, aktorid: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {
+    fun upsertHenvendelse(kjedeId: String, aktorId: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {
         return transaction {
             Henvendelser.upsert(
-                keys = arrayOf(Henvendelser.id) // Perform update if there is a conflict here
+                keys = arrayOf(Henvendelser.kjedeId) // Perform update if there is a conflict here
             ) {
-                it[Henvendelser.id] = id
-                it[Henvendelser.aktorid] = aktorid
+                it[Henvendelser.kjedeId] = kjedeId
+                it[Henvendelser.aktorId] = aktorId
                 it[Henvendelser.json] = json
                 it[Henvendelser.lastModified] = LocalDateTime.now()
                 it[Henvendelser.lastModifiedBySF] = updateBySF
@@ -73,15 +74,15 @@ class PostgresDatabase {
         }.resultedValues?.firstOrNull()?.toHenvendelseRecord()
     }
 
-    fun henteHenvendelse(id: String): List<HenvendelseRecord> = transaction {
-        Henvendelser.selectAll().andWhere { Henvendelser.id eq id }
+    fun henteHenvendelse(kjedeId: String): List<HenvendelseRecord> = transaction {
+        Henvendelser.selectAll().andWhere { Henvendelser.kjedeId eq kjedeId }
             .toList()
             .map { it.toHenvendelseRecord() }
     }
 
-    fun henteHenvendelserByAktorid(aktorid: String): List<HenvendelseRecord> =
+    fun henteHenvendelserByAktorId(aktorId: String): List<HenvendelseRecord> =
         transaction {
-            Henvendelser.selectAll().andWhere { Henvendelser.aktorid eq aktorid }
+            Henvendelser.selectAll().andWhere { Henvendelser.aktorId eq aktorId }
                 .toList()
                 .map { it.toHenvendelseRecord() }
         }

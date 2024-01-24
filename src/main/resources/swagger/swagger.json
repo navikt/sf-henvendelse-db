@@ -24,7 +24,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "example": "{ \n  \"id\" : \"id\",\n  \"aktorId\" : \"aktorId\",\n  \"etc\" : \"etc...\"\n}"
+                "example": "{ \n  \"kjedeId\" : \"id\",\n  \"aktorId\" : \"aktorId\",\n  \"etc\" : \"etc...\"\n}"
               }
             }
           },
@@ -37,7 +37,7 @@
         },
         "parameters": [
           {
-            "name": "id",
+            "name": "kjedeId",
             "in": "query",
             "required": true,
             "schema": {
@@ -67,7 +67,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "example": "{ \"id\" : \"id\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}"
+                "example": "{ \"kjedeId\" : \"id\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}"
               }
             }
           },
@@ -91,7 +91,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "example": "[{ \"id\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"id\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
+                "example": "[{ \"kjedeId\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"kjedeId\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
               }
             }
           },
@@ -104,13 +104,13 @@
         },
         "parameters": [
           {
-            "name": "aktorid",
+            "name": "aktorId",
             "in": "query",
             "required": true,
             "schema": {
               "type": "string"
             },
-            "description": "Aktorid for oppslag av henvendelser"
+            "description": "AktorId for oppslag av henvendelser"
           }
         ]
       },

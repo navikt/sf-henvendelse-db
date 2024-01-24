@@ -63,7 +63,7 @@ class ApplicationTest {
         every { request.method } returns Method.GET
         every { action.invoke(any()) } returns response
 
-        every { mockTokenOptional.isPresent } returns false
+        every { mockTokenOptional.isPresent } returns false // No approved tokens
         every { mockTokenValidator.firstValidToken(any()) } returns mockTokenOptional
 
         // Create an instance of AuthRouteBuilder
@@ -78,7 +78,7 @@ class ApplicationTest {
     @Test
     fun `upsertHenvendelseHandler should handle valid request`() {
         val request = Request(Method.POST, "/henvendelse")
-            .body("""{ "id" : "test", "aktorId" : "aktor1", "data" : "test-data" }""")
+            .body("""{ "kjedeId" : "test", "aktorId" : "aktor1", "data" : "test-data" }""")
 
         every { mockDatabase.upsertHenvendelse(any(), any(), any(), any()) } returns null
 
@@ -86,10 +86,10 @@ class ApplicationTest {
 
         verify {
             mockDatabase.upsertHenvendelse(
-                id = "test",
-                aktorid = "aktor1",
+                kjedeId = "test",
+                aktorId = "aktor1",
                 json =
-                    """{ "id" : "test", "aktorId" : "aktor1", "data" : "test-data" }""",
+                    """{ "kjedeId" : "test", "aktorId" : "aktor1", "data" : "test-data" }""",
                 updateBySF = false
             )
         }
@@ -98,7 +98,7 @@ class ApplicationTest {
     @Test
     fun `upsertHenvendelseHandler should call upsertHenvendelse with updated by SF if token has salesforce as source in azp_name`() {
         val request = Request(Method.POST, "/henvendelse")
-            .body("""{ "id" : "test", "aktorId" : "aktor1", "data" : "test-data" }""")
+            .body("""{ "kjedeId" : "test", "aktorId" : "aktor1", "data" : "test-data" }""")
 
         every { mockDatabase.upsertHenvendelse(any(), any(), any(), any()) } returns null
 
@@ -109,10 +109,10 @@ class ApplicationTest {
 
         verify {
             mockDatabase.upsertHenvendelse(
-                id = "test",
-                aktorid = "aktor1",
+                kjedeId = "test",
+                aktorId = "aktor1",
                 json =
-                    """{ "id" : "test", "aktorId" : "aktor1", "data" : "test-data" }""",
+                    """{ "kjedeId" : "test", "aktorId" : "aktor1", "data" : "test-data" }""",
                 updateBySF = true
             )
         }
@@ -130,7 +130,7 @@ class ApplicationTest {
     @Test
     fun `batchUpsertHenvendelserHandler should handle valid request`() {
         val request = Request(Method.PUT, "/henvendelser")
-            .body("""[{"id": "test1", "aktorId": "aktor1", "data": "data1"}, {"id": "test2", "aktorId": "aktor2", "data": "data2"}]""")
+            .body("""[{"kjedeId": "test1", "aktorId": "aktor1", "data": "data1"}, {"kjedeId": "test2", "aktorId": "aktor2", "data": "data2"}]""")
 
         every { mockDatabase.upsertHenvendelse(any(), any(), any(), any()) } returns null
 
@@ -142,9 +142,9 @@ class ApplicationTest {
     }
 
     @Test
-    fun `batchUpsertHenvendelserHandler should handle missing id in one item`() {
+    fun `batchUpsertHenvendelserHandler should handle missing kjedeId in one item`() {
         val request = Request(Method.PUT, "/henvendelser")
-            .body("""[{"id": "test1", "aktorId": "aktor1", "data": "data1"}, {"aktorId": "aktor2", "data": "data2"}]""")
+            .body("""[{"kjedeId": "test1", "aktorId": "aktor1", "data": "data1"}, {"aktorId": "aktor2", "data": "data2"}]""")
 
         val response = application.batchUpsertHenvendelserHandler(request)
 

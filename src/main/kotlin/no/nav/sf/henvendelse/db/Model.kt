@@ -12,8 +12,8 @@ import java.time.LocalDateTime
 const val MAX_LIMIT_VARCHAR = 10485760
 
 object Henvendelser : Table() {
-    val id = varchar("id", 18).uniqueIndex()
-    val aktorid = varchar("aktorid", 20).index()
+    val kjedeId = varchar("kjedeid", 18).uniqueIndex()
+    val aktorId = varchar("aktorid", 20).index()
     val json = varchar("json", MAX_LIMIT_VARCHAR)
 
     // Record metadata
@@ -22,8 +22,8 @@ object Henvendelser : Table() {
 }
 
 data class HenvendelseRecord(
-    val id: String,
-    val aktorid: String,
+    val kjedeId: String,
+    val aktorId: String,
     val json: String,
     val lastModified: LocalDateTime,
     val lastModifiedBySF: Boolean
@@ -31,8 +31,8 @@ data class HenvendelseRecord(
 
 fun ResultRow.toHenvendelseRecord() =
     HenvendelseRecord(
-        id = this[Henvendelser.id],
-        aktorid = this[Henvendelser.aktorid],
+        kjedeId = this[Henvendelser.kjedeId],
+        aktorId = this[Henvendelser.aktorId],
         json = this[Henvendelser.json],
         lastModified = this[Henvendelser.lastModified],
         lastModifiedBySF = this[Henvendelser.lastModifiedBySF]
