@@ -57,3 +57,5 @@ spec:
   env:
     - name: VIEW_PAGE_SIZE
       value: "50"
+    - name: CONTEXT
+      value: "DEV"
