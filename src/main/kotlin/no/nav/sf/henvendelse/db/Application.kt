@@ -21,6 +21,7 @@ import org.http4k.routing.static
 import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
+import java.io.File
 
 class Application(
     val tokenValidator: TokenValidator = DefaultTokenValidator(),
@@ -71,13 +72,16 @@ class Application(
     )
 
     val upsertHenvendelseHandler: HttpHandler = {
+        File("/tmp/latestRequestUpsertHenvendlse").writeText(it.toMessage())
         try {
             val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
             val kjedeId = jsonObj["kjedeId"]?.asString
             val aktorId = jsonObj["aktorId"]?.asString
             if (kjedeId == null) {
+                File("/tmp/latestBadRequestK").writeText(it.toMessage())
                 Response(Status.BAD_REQUEST).body("Missing field kjedeId in json")
             } else if (aktorId == null) {
+                File("/tmp/latestBadRequestA").writeText(it.toMessage())
                 Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
             } else {
                 val result = database.upsertHenvendelse(
@@ -94,13 +98,16 @@ class Application(
     }
 
     val batchUpsertHenvendelserHandler: HttpHandler = {
+        File("/tmp/latestRequestBatchUpsertHenvendlser").writeText(it.toMessage())
         try {
             val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
             log.info { "Batch PUT henvendelser called with ${jsonArray.size()} items" }
             val updatedKjedeIds: MutableList<String> = mutableListOf()
             if (jsonArray.any { e -> (e as JsonObject)["kjedeId"] == null }) {
+                File("/tmp/latestBadRequestKs").writeText(it.toMessage())
                 Response(Status.BAD_REQUEST).body("At least one item is missing field kjedeId in json")
             } else if (jsonArray.any { e -> (e as JsonObject)["aktorId"] == null }) {
+                File("/tmp/latestBadRequestAs").writeText(it.toMessage())
                 Response(Status.BAD_REQUEST).body("At least one item is missing field aktorId in json")
             } else {
                 jsonArray.forEach { e ->
@@ -122,6 +129,7 @@ class Application(
     }
 
     val fetchHenvendelseByKjedeIdHandler: HttpHandler = {
+        File("/tmp/latestRequestFetchHenvendlseByKjedeId").writeText(it.toMessage())
         val kjedeId = it.query("kjedeId")
         if (kjedeId == null) {
             Response(Status.BAD_REQUEST).body("Missing parameter kjedeId")
@@ -132,6 +140,7 @@ class Application(
     }
 
     val fetchHenvendelserByAktorIdHandler: HttpHandler = {
+        File("/tmp/latestRequestFetchHenvendlserByAktorId").writeText(it.toMessage())
         val aktorId = it.query("aktorId")
         if (aktorId == null) {
             Response(Status.BAD_REQUEST).body("Missing parameter aktorId")
