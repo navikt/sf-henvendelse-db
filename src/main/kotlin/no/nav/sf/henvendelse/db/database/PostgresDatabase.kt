@@ -1,8 +1,10 @@
-package no.nav.sf.henvendelse.db
+package no.nav.sf.henvendelse.db.database
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
+import no.nav.sf.henvendelse.db.env_CONTEXT
+import no.nav.sf.henvendelse.db.naisDatabasePrefix
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.andWhere
@@ -15,14 +17,14 @@ import java.time.LocalDateTime
 class PostgresDatabase {
     private val log = KotlinLogging.logger { }
 
-    private val context = System.getenv("CONTEXT")
+    private val context = System.getenv(env_CONTEXT)
 
-    private val dbUrl = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_${context}_URL")
-    private val host = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_${context}_HOST")
-    private val port = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_${context}_PORT")
-    private val name = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_${context}_DATABASE")
-    private val user = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_${context}_USERNAME")
-    private val userpassword = System.getenv("NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_${context}_PASSWORD")
+    private val dbUrl = System.getenv("${naisDatabasePrefix}_${context}_URL")
+    private val dbHost = System.getenv("${naisDatabasePrefix}_${context}_HOST")
+    private val dbPort = System.getenv("${naisDatabasePrefix}_${context}_PORT")
+    private val dbName = System.getenv("${naisDatabasePrefix}_${context}_DATABASE")
+    private val dbUsername = System.getenv("${naisDatabasePrefix}_${context}_USERNAME")
+    private val dbPassword = System.getenv("${naisDatabasePrefix}_${context}_PASSWORD")
 
     // val dataSource = HikariDataSource(hikariConfig())
     // Note: exposed Database connect prepares for connections but does not actually open connections
@@ -30,13 +32,13 @@ class PostgresDatabase {
     val database = Database.connect(HikariDataSource(hikariConfig()))
 
     private fun hikariConfig(): HikariConfig = HikariConfig().apply {
-        jdbcUrl = "jdbc:postgresql://localhost:$port/$name" // This is where the cloud db proxy is located in the pod
+        jdbcUrl = "jdbc:postgresql://localhost:$dbPort/$dbName" // This is where the cloud db proxy is located in the pod
         driverClassName = "org.postgresql.Driver"
-        addDataSourceProperty("serverName", host)
-        addDataSourceProperty("port", port)
-        addDataSourceProperty("databaseName", name)
-        addDataSourceProperty("user", user)
-        addDataSourceProperty("password", userpassword)
+        addDataSourceProperty("serverName", dbHost)
+        addDataSourceProperty("port", dbPort)
+        addDataSourceProperty("databaseName", dbName)
+        addDataSourceProperty("user", dbUsername)
+        addDataSourceProperty("password", dbPassword)
         minimumIdle = 1
         maxLifetime = 26000
         maximumPoolSize = 10
@@ -70,8 +72,8 @@ class PostgresDatabase {
                 it[Henvendelser.kjedeId] = kjedeId
                 it[Henvendelser.aktorId] = aktorId
                 it[Henvendelser.json] = json
-                it[Henvendelser.lastModified] = LocalDateTime.now()
-                it[Henvendelser.lastModifiedBySF] = updateBySF
+                it[lastModified] = LocalDateTime.now()
+                it[lastModifiedBySF] = updateBySF
             }
         }.resultedValues?.firstOrNull()?.toHenvendelseRecord()
     }

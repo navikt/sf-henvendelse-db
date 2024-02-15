@@ -1,4 +1,4 @@
-package no.nav.sf.henvendelse.db
+package no.nav.sf.henvendelse.db.database
 
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table

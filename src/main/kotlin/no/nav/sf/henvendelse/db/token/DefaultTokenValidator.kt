@@ -1,24 +1,18 @@
 package no.nav.sf.henvendelse.api.proxy.token
 
-import mu.KotlinLogging
 import no.nav.security.token.support.core.configuration.IssuerProperties
 import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import no.nav.security.token.support.core.http.HttpRequest
 import no.nav.security.token.support.core.jwt.JwtToken
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
+import no.nav.sf.henvendelse.db.env_AZURE_APP_CLIENT_ID
+import no.nav.sf.henvendelse.db.env_AZURE_APP_WELL_KNOWN_URL
+import no.nav.sf.henvendelse.db.token.TokenValidator
+import no.nav.sf.henvendelse.db.token.isFromSalesforce
 import org.http4k.core.Request
 import java.io.File
 import java.net.URL
 import java.util.Optional
-
-const val env_AZURE_APP_WELL_KNOWN_URL = "AZURE_APP_WELL_KNOWN_URL"
-const val env_AZURE_APP_CLIENT_ID = "AZURE_APP_CLIENT_ID"
-
-private val log = KotlinLogging.logger { }
-
-interface TokenValidator {
-    fun firstValidToken(request: Request): Optional<JwtToken>
-}
 
 class DefaultTokenValidator : TokenValidator {
     private val azureAlias = "azure"
@@ -42,7 +36,9 @@ class DefaultTokenValidator : TokenValidator {
         return result
     }
 
-    fun Request.toNavRequest(): HttpRequest {
+    override fun hasTokenFromSalesforce(request: Request) = this.firstValidToken(request).get().isFromSalesforce()
+
+    private fun Request.toNavRequest(): HttpRequest {
         val req = this
         return object : HttpRequest {
             override fun getHeader(headerName: String): String {
@@ -52,14 +48,5 @@ class DefaultTokenValidator : TokenValidator {
                 return arrayOf()
             }
         }
-    }
-}
-
-fun JwtToken.isFromSalesforce(): Boolean {
-    return try {
-        this.jwtTokenClaims.getStringClaim("azp_name").split(":")[2] == "salesforce"
-    } catch (e: Exception) {
-        log.error { "Failed to parse azp_name claim to perceive source app - will set modified by Salesforce to false" }
-        false
     }
 }
