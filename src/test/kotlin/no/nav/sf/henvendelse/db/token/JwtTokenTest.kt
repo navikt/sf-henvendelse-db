@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 
 class JwtTokenTest {
 
-    val mockToken = mockk<JwtToken>()
+    private val mockToken = mockk<JwtToken>()
 
     @Test
     fun `token with salesforce as azp_name app should be correctly identified as from salesforce`() {

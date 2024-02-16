@@ -15,53 +15,61 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
     private val log = KotlinLogging.logger { }
 
     val upsertHenvendelseHandler: HttpHandler = {
-        try {
-            val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
-            val kjedeId = jsonObj["kjedeId"]?.asString
-            val aktorId = jsonObj["aktorId"]?.asString
-            if (kjedeId == null) {
-                Response(Status.BAD_REQUEST).body("Missing field kjedeId in json")
-            } else if (aktorId == null) {
-                Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
-            } else {
-                val result = database.upsertHenvendelse(
-                    kjedeId = kjedeId,
-                    aktorId = aktorId,
-                    json = it.bodyString(),
-                    updateBySF = tokenValidator.hasTokenFromSalesforce(it)
-                )
-                Response(Status.OK).body(gson.toJson(result))
+        if (it.bodyString().isBlank()) {
+            Response(Status.BAD_REQUEST).body("Missing request body")
+        } else {
+            try {
+                val jsonObj = JsonParser.parseString(it.bodyString()) as JsonObject
+                val kjedeId = jsonObj["kjedeId"]?.asString
+                val aktorId = jsonObj["aktorId"]?.asString
+                if (kjedeId == null) {
+                    Response(Status.BAD_REQUEST).body("Missing field kjedeId in json")
+                } else if (aktorId == null) {
+                    Response(Status.BAD_REQUEST).body("Missing field aktorId in json")
+                } else {
+                    val result = database.upsertHenvendelse(
+                        kjedeId = kjedeId,
+                        aktorId = aktorId,
+                        json = it.bodyString(),
+                        updateBySF = tokenValidator.hasTokenFromSalesforce(it)
+                    )
+                    Response(Status.OK).body(gson.toJson(result))
+                }
+            } catch (_: JsonParseException) {
+                Response(Status.BAD_REQUEST).body("Failed to parse request body as json object")
             }
-        } catch (_: JsonParseException) {
-            Response(Status.BAD_REQUEST).body("Failed to parse request body as json object")
         }
     }
 
     val batchUpsertHenvendelserHandler: HttpHandler = {
-        try {
-            val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
-            log.info { "Batch PUT henvendelser called with ${jsonArray.size()} items" }
-            val updatedKjedeIds: MutableList<String> = mutableListOf()
-            if (jsonArray.any { e -> (e as JsonObject)["kjedeId"] == null }) {
-                Response(Status.BAD_REQUEST).body("At least one item is missing field kjedeId in json")
-            } else if (jsonArray.any { e -> (e as JsonObject)["aktorId"] == null }) {
-                Response(Status.BAD_REQUEST).body("At least one item is missing field aktorId in json")
-            } else {
-                jsonArray.forEach { e ->
-                    val jsonObj = e as JsonObject
-                    val result = database.upsertHenvendelse(
-                        kjedeId = jsonObj["kjedeId"].asString,
-                        aktorId = jsonObj["aktorId"].asString,
-                        json = jsonObj.toString(),
-                        updateBySF = tokenValidator.hasTokenFromSalesforce(it)
-                    )
-                    result?.let { updatedKjedeIds.add(result.kjedeId) }
+        if (it.bodyString().isBlank()) {
+            Response(Status.BAD_REQUEST).body("Missing request body")
+        } else {
+            try {
+                val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
+                log.info { "Batch PUT henvendelser called with ${jsonArray.size()} items" }
+                val updatedKjedeIds: MutableList<String> = mutableListOf()
+                if (jsonArray.any { e -> (e as JsonObject)["kjedeId"] == null }) {
+                    Response(Status.BAD_REQUEST).body("At least one item is missing field kjedeId in json")
+                } else if (jsonArray.any { e -> (e as JsonObject)["aktorId"] == null }) {
+                    Response(Status.BAD_REQUEST).body("At least one item is missing field aktorId in json")
+                } else {
+                    jsonArray.forEach { e ->
+                        val jsonObj = e as JsonObject
+                        val result = database.upsertHenvendelse(
+                            kjedeId = jsonObj["kjedeId"].asString,
+                            aktorId = jsonObj["aktorId"].asString,
+                            json = jsonObj.toString(),
+                            updateBySF = tokenValidator.hasTokenFromSalesforce(it)
+                        )
+                        result?.let { updatedKjedeIds.add(result.kjedeId) }
+                    }
+                    log.info { "Upserted ${updatedKjedeIds.size} items" }
+                    Response(Status.OK).body("Upserted ${updatedKjedeIds.size} items")
                 }
-                log.info { "Upserted ${updatedKjedeIds.size} items" }
-                Response(Status.OK).body("Upserted ${updatedKjedeIds.size} items")
+            } catch (_: JsonParseException) {
+                Response(Status.BAD_REQUEST).body("Failed to parse request body as json array")
             }
-        } catch (_: JsonParseException) {
-            Response(Status.BAD_REQUEST).body("Failed to parse request body as json array")
         }
     }
 

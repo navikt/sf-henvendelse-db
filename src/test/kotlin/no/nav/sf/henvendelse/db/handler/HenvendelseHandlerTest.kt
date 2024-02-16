@@ -103,4 +103,13 @@ class HenvendelseHandlerTest {
 
         Assertions.assertEquals(Status.BAD_REQUEST, response.status)
     }
+
+    @Test
+    fun jafa() {
+        val body =
+            """{"aktorId" : "1234567","kjedeId" : "teaspoon", "data" : "spoon2"},{"aktorId" : "789","kjedeId" : "furniture", "data" : "table"}"""
+        val request = Request(Method.POST, "/henvendelse").body(body)
+        val response = henvendelseHandler.upsertHenvendelseHandler(request)
+        println(response.toMessage())
+    }
 }
