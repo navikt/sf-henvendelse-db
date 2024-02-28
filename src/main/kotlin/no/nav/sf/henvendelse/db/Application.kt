@@ -21,10 +21,10 @@ import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
 
 class Application(
-    val tokenValidator: TokenValidator = DefaultTokenValidator(),
-    val database: PostgresDatabase = PostgresDatabase(),
-    val gui: GuiHandler = GuiHandler(database, gson),
-    val henvendelse: HenvendelseHandler = HenvendelseHandler(database, tokenValidator, gson)
+    private val tokenValidator: TokenValidator = DefaultTokenValidator(),
+    private val database: PostgresDatabase = PostgresDatabase(),
+    private val gui: GuiHandler = GuiHandler(database, gson),
+    private val henvendelse: HenvendelseHandler = HenvendelseHandler(database, tokenValidator, gson)
 ) {
     private val log = KotlinLogging.logger { }
 

@@ -1,15 +1,15 @@
 package no.nav.sf.henvendelse.db.handler
 
 import com.google.gson.Gson
+import no.nav.sf.henvendelse.db.config_VIEW_PAGE_SIZE
 import no.nav.sf.henvendelse.db.database.HenvendelseRecord
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
-import no.nav.sf.henvendelse.db.env_VIEW_PAGE_SIZE
 import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
 
 class GuiHandler(database: PostgresDatabase, gson: Gson) {
-    private val viewPageSize = System.getenv(env_VIEW_PAGE_SIZE).toInt()
+    private val viewPageSize = System.getenv(config_VIEW_PAGE_SIZE).toInt()
 
     private data class ViewData(
         val page: Long,

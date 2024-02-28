@@ -20,7 +20,6 @@ spec:
   preStopHook:
     exec:
       command: [ "/bin/bash", "/pre-stop.sh" ]
-  terminationGracePeriodSeconds: 60
   prometheus:
     enabled: true
     path: /internal/metrics
@@ -56,6 +55,6 @@ spec:
           cluster: dev-external
   env:
     - name: VIEW_PAGE_SIZE
-      value: "50"
+      value: "10"
     - name: CONTEXT
       value: "DEV"
