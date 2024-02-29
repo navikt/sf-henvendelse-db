@@ -3,6 +3,7 @@
  */
 
 fun main() {
+    println("Running syntax-demo - uncomment things at your leisure")
     /**
      * Nulls part of type system (addressing notorious Java NullPointerException)
      */
@@ -68,7 +69,7 @@ fun main() {
      * Scope functions - Scope functions allow concise ways to operate on objects within a specific context, avoiding repetitive object references.
      */
     // Scope functions
-    val user = UserPOJO("John", 25).run {
+    val user = UserPOJO("John", 25).apply {
         // println("User: $name, Age: $age")
     }.also {
         // Additional operations if needed
