@@ -14,6 +14,7 @@ const val MAX_LIMIT_VARCHAR = 10485760
 object Henvendelser : Table() {
     val kjedeId = varchar("kjedeid", 18).uniqueIndex()
     val aktorId = varchar("aktorid", 20).index()
+    val fnr = varchar("fnr", 20).index()
     val json = varchar("json", MAX_LIMIT_VARCHAR)
 
     // Record metadata

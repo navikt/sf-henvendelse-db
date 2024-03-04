@@ -28,8 +28,7 @@ class DefaultTokenValidator : TokenValidator {
     private val jwtTokenValidationHandler = JwtTokenValidationHandler(multiIssuerConfiguration)
 
     override fun firstValidToken(request: Request): Optional<JwtToken> {
-        lateinit var result: Optional<JwtToken>
-        result = jwtTokenValidationHandler.getValidatedTokens(request.toNavRequest()).firstValidToken
+        val result: Optional<JwtToken> = jwtTokenValidationHandler.getValidatedTokens(request.toNavRequest()).firstValidToken
         if (!result.isPresent) {
             File("/tmp/novalidtoken").writeText(request.toMessage())
         }

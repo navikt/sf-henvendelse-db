@@ -31,7 +31,7 @@ class Application(
     fun start() {
         log.info { "Starting" }
         apiServer(8080).start()
-        // database.create(false)
+        database.create(true)
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
@@ -50,7 +50,7 @@ class Application(
     )
 
     /**
-     * authbind: an extention of bind that takes care of authentication with use of tokenValidator
+     * authbind: a variant of bind that takes care of authentication with use of tokenValidator
      */
     infix fun String.authbind(method: Method) = AuthRouteBuilder(this, method, tokenValidator)
 
