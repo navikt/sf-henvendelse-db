@@ -8,8 +8,8 @@
     <meta http-equiv="Expires" content="0" />
     <style>
 
-        .highlighted {
-            border: 1px solid black; /* Thin border */
+        table.blueTable td.highlighted {
+            border: 3px solid black;
         }
 
         .json-popup {
@@ -193,7 +193,7 @@
                     <td>${record.kjedeId}</td>
                     <td>${record.aktorId}</td>
                     <td>${record.fnr}</td>
-                    <td onclick="showJsonPopup(event)">${record.json}</td>
+                    <td class="json-td" onclick="showJsonPopup(event)">${record.json}</td>
                     <td>${record.lastModified}</td>
                     <td>${record.lastModifiedBySF}</td>
                 </tr>`
