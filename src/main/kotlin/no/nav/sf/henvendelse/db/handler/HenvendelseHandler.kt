@@ -15,6 +15,7 @@ import org.http4k.core.Status.Companion.OK
 
 const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
+const val FNR = "fnr"
 
 class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValidator, gson: Gson) {
     private val log = KotlinLogging.logger { }
@@ -33,6 +34,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                     val result = database.upsertHenvendelse(
                         kjedeId = validationResult.kjedeId,
                         aktorId = validationResult.aktorId,
+                        fnr = validationResult.fnr,
                         json = jsonArray.toString(),
                         updateBySF = tokenValidator.hasTokenFromSalesforce(it)
                     )
@@ -44,11 +46,11 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
-    data class ValidationResult(val errorMessage: String, val kjedeId: String = "", val aktorId: String = "") {
+    data class ValidationResult(val errorMessage: String, val kjedeId: String = "", val aktorId: String = "", val fnr: String = "") {
         fun isInvalid() = errorMessage.isNotBlank()
     }
 
-    fun validateJsonArray(jsonArray: JsonArray): ValidationResult {
+    private fun validateJsonArray(jsonArray: JsonArray): ValidationResult {
         if (jsonArray.size() < 1) {
             return ValidationResult("JSON array must contain at least one JSON object")
         }
@@ -56,23 +58,31 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             val firstObject = jsonArray[0].asJsonObject
             val kjedeId = firstObject[KJEDE_ID]?.asString ?: ""
             val aktorId = firstObject[AKTOR_ID]?.asString ?: ""
+            val fnr = firstObject[FNR]?.asString ?: ""
 
             if (kjedeId.isBlank()) {
                 return ValidationResult("Missing field kjedeId in json")
             } else if (aktorId.isBlank()) {
                 return ValidationResult("Missing field aktorId in json")
+            } else if (fnr.isBlank()) {
+                return ValidationResult("Missing field fnr in json")
             }
 
             for (i in 1 until jsonArray.size()) {
                 val obj = jsonArray[i].asJsonObject
                 val currentKjedeId = obj[KJEDE_ID]?.asString
                 val currentAktorId = obj[AKTOR_ID]?.asString
+                val currentFnr = obj[FNR]?.asString
 
-                if (currentKjedeId != kjedeId || currentAktorId != aktorId) {
-                    return ValidationResult("Inconsistent kjedeId or aktorId found in JSON array")
+                if (currentKjedeId != kjedeId) {
+                    return ValidationResult("Inconsistent kjedeId found in JSON array")
+                } else if (currentAktorId != aktorId) {
+                    return ValidationResult("Inconsistent aktorId found in JSON array")
+                } else if (currentFnr != fnr) {
+                    return ValidationResult("Inconsistent fnr found in JSON array")
                 }
             }
-            return ValidationResult("", kjedeId, aktorId)
+            return ValidationResult("", kjedeId, aktorId, fnr)
         } catch (_: JsonParseException) {
             return ValidationResult("Failed to parse json array element as json object")
         }
@@ -98,6 +108,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                             val result = database.upsertHenvendelse(
                                 kjedeId = firstObject[KJEDE_ID].asString,
                                 aktorId = firstObject[AKTOR_ID].asString,
+                                fnr = firstObject[FNR].asString,
                                 json = array.toString(),
                                 updateBySF = tokenValidator.hasTokenFromSalesforce(it)
                             )

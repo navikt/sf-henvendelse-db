@@ -25,6 +25,7 @@ object Henvendelser : Table() {
 data class HenvendelseRecord(
     val kjedeId: String,
     val aktorId: String,
+    val fnr: String,
     val json: String,
     val lastModified: LocalDateTime,
     val lastModifiedBySF: Boolean
@@ -34,6 +35,7 @@ fun ResultRow.toHenvendelseRecord() =
     HenvendelseRecord(
         kjedeId = this[Henvendelser.kjedeId],
         aktorId = this[Henvendelser.aktorId],
+        fnr = this[Henvendelser.fnr],
         json = this[Henvendelser.json],
         lastModified = this[Henvendelser.lastModified],
         lastModifiedBySF = this[Henvendelser.lastModifiedBySF]

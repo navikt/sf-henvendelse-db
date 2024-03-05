@@ -45,7 +45,7 @@ class PostgresDatabase {
         connectionTimeout = 250
         idleTimeout = 10000
         isAutoCommit = false
-        transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+        transactionIsolation = "TRANSACTION_REPEATABLE_READ" // Isolation level that ensure the same snapshot of db during one transaction
     }
 
     fun create(dropFirst: Boolean = false) {
@@ -63,13 +63,14 @@ class PostgresDatabase {
         }
     }
 
-    fun upsertHenvendelse(kjedeId: String, aktorId: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {
+    fun upsertHenvendelse(kjedeId: String, aktorId: String, fnr: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {
         return transaction {
             Henvendelser.upsert(
                 keys = arrayOf(Henvendelser.kjedeId) // Perform update if there is a conflict here
             ) {
                 it[Henvendelser.kjedeId] = kjedeId
                 it[Henvendelser.aktorId] = aktorId
+                it[Henvendelser.fnr] = fnr
                 it[Henvendelser.json] = json
                 it[lastModified] = LocalDateTime.now()
                 it[lastModifiedBySF] = updateBySF
