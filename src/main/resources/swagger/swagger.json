@@ -24,7 +24,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "example": "[{ \n  \"kjedeId\" : \"id\",\n  \"aktorId\" : \"aktorId\",\n  \"etc\" : \"etc...\"\n}]"
+                "example": "[{ \n  \"kjedeId\" : \"id\",\n  \"aktorId\" : \"aktorId\",\n  \"fnr\" : \"fnr\",\n  \"etc\" : \"etc...\"\n}]"
               }
             }
           },

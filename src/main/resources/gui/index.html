@@ -166,9 +166,9 @@
             ).join('') +
             '</tbody>' +
             '<tfoot>' +
-            '<tr><td colspan="5"><span id="sampletext"></span></td></tr>' +
-            '<tr><td colspan="5"><div class="links"><a onclick="loadFirstPage()">&laquo;</a><a onclick="loadPreviousPage()">&lsaquo;</a>' +
-            '<span id="currentPage"></span><a onclick="loadNextPage()">&rsaquo;</a><a onclick="loadLastPage()">&raquo;</a></div></td>' +
+            '<tr><td colspan="6"><span id="sampletext"></span></td></tr>' +
+            '<tr><td colspan="6"><div class="links"><a onclick="loadFirstPage()">&laquo;</a><a onclick="loadPreviousPage()">&lsaquo;</a>' +
+            '<span id="currentPage"></span><a onclick="loadNextPage()">&rsaquo;</a><a onclick="loadLastPage()">&raquo;</a><button onclick="refreshTable()">Refresh</button></div></td>' +
             '</tr>' +
             '</tfoot>'
             '</table>';
@@ -194,6 +194,10 @@
 
     const loadLastPage = () => {
         loadTablePage(pageCount);
+    };
+
+    const refreshTable = () => {
+        loadTablePage(currentPage); // Reload the current page
     };
 
     const loadNextPage = () => {
