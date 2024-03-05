@@ -79,6 +79,9 @@
         th#aktoridColumn {
             width: 20ch;
         }
+        th#fnrColumn {
+            width: 20ch;
+        }
 
         th#lastmodifiedColumn {
             width: 26ch;
@@ -150,11 +153,12 @@
         const tableContainer = document.getElementById('table-container');
 
         tableContainer.innerHTML = '<table class="blueTable">' +
-            '<thead><tr><th id="idColumn">KjedeId</th><th id="aktoridColumn">AktorId</th><th>JSON</th><th id ="lastmodifiedColumn">Last Modified</th><th id="bySFColumn">By SF</th></tr></thead><tbody>' +
+            '<thead><tr><th id="idColumn">KjedeId</th><th id="aktoridColumn">AktorId</th><th id="fnrColumn">Fnr</th><th>JSON</th><th id ="lastmodifiedColumn">Last Modified</th><th id="bySFColumn">By SF</th></tr></thead><tbody>' +
             records.map(record =>
                 `<tr>
                     <td>${record.kjedeId}</td>
                     <td>${record.aktorId}</td>
+                    <td>${record.fnr}</td>
                     <td>${record.json}</td>
                     <td>${record.lastModified}</td>
                     <td>${record.lastModifiedBySF}</td>

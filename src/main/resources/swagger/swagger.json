@@ -57,7 +57,10 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object"
+                "type": "array",
+                "items": {
+                  "type" : "object"
+                }
               }
             }
           }
@@ -67,7 +70,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "example": "[{ \"kjedeId\" : \"id\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]"
+                "example": "[{ \"kjedeId\" : \"id\",\n\"aktorId\" : \"aktorId\",\n\"fnr\" : \"fnr\",\n\"etc\" : \"etc...\"}]"
               }
             }
           },
@@ -91,7 +94,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "example": "[[{ \"kjedeId\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"},\n{ \"kjedeId\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"etc\" : \"etc...\"}]]"
+                "example": "[[{ \"kjedeId\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"fnr\" : \"fnr\",\n\"etc\" : \"etc...\"},\n{ \"kjedeId\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"fnr\" : \"fnr\",\n\"etc\" : \"etc...\"}]]"
               }
             }
           },
@@ -126,7 +129,10 @@
               "schema": {
                 "type": "array",
                 "items": {
-                  "type": "object"
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
                 }
               }
             }
