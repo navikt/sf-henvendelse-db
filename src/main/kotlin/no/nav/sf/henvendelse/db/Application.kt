@@ -29,7 +29,7 @@ class Application(
     private val log = KotlinLogging.logger { }
 
     fun start() {
-        log.info { "Starting" }
+        log.info { "Starting..." }
         apiServer(8080).start()
         // database.create(true)
     }
