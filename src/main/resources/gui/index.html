@@ -7,7 +7,16 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <style>
-        .show {display: block;}
+
+        .refresh-icon {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .refresh-icon:hover {
+            background-color: blue;
+        }
 
         table.blueTable {
             font-family: 'Courier New', Courier, monospace;
@@ -99,6 +108,7 @@
 </head>
 <body>
 
+<img src="/internal/gui/refresh.png" class="refresh-icon" onclick="refreshTable()" alt="Refresh Icon">
 <h2>Henvendelse table examine</h2>
 
 <div id="authorization-container">
@@ -168,7 +178,7 @@
             '<tfoot>' +
             '<tr><td colspan="6"><span id="sampletext"></span></td></tr>' +
             '<tr><td colspan="6"><div class="links"><a onclick="loadFirstPage()">&laquo;</a><a onclick="loadPreviousPage()">&lsaquo;</a>' +
-            '<span id="currentPage"></span><a onclick="loadNextPage()">&rsaquo;</a><a onclick="loadLastPage()">&raquo;</a><button onclick="refreshTable()">Refresh</button></div></td>' +
+            '<span id="currentPage"></span><a onclick="loadNextPage()">&rsaquo;</a><a onclick="loadLastPage()">&raquo;</a></div></td>' +
             '</tr>' +
             '</tfoot>'
             '</table>';

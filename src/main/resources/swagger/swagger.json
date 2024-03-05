@@ -94,7 +94,7 @@
             "description": "OK",
             "content": {
               "application/json": {
-                "example": "[[{ \"kjedeId\" : \"id1\",\n\"aktorId\" : \"aktorId\",\n\"fnr\" : \"fnr\",\n\"etc\" : \"etc...\"},\n{ \"kjedeId\" : \"id2\",\n\"aktorId\" : \"aktorId\",\n\"fnr\" : \"fnr\",\n\"etc\" : \"etc...\"}]]"
+                "example": "[{\"kjedeId\":\"test\",\"aktorId\":\"aktor1\",\"fnr\":\"fnr1\",\"json\":\"[{\\\"kjedeId\\\":\\\"test\\\",\\\"aktorId\\\":\\\"aktor1\\\",\\\"fnr\\\":\\\"fnr1\\\",\\\"data\\\":\\\"test-data.\\\"},{\\\"kjedeId\\\":\\\"test\\\",\\\"aktorId\\\":\\\"aktor1\\\",\\\"fnr\\\":\\\"fnr1\\\",\\\"data\\\":\\\"oh, by the way.\\\"}]\",\"lastModified\":\"2024-03-05T12:29:13.16795\",\"lastModifiedBySF\":false}]"
               }
             }
           },
