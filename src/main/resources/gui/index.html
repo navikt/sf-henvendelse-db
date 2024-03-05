@@ -7,6 +7,26 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <style>
+        .json-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            z-index: 9999;
+            max-width: 80%;
+            max-height: 80%;
+            overflow: auto;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            cursor: pointer;
+        }
 
         .refresh-icon {
             width: 30px;
@@ -15,7 +35,7 @@
         }
 
         .refresh-icon:hover {
-            background-color: blue;
+            background-color: #5592bb;
         }
 
         table.blueTable {
@@ -107,9 +127,8 @@
     </style>
 </head>
 <body>
-
-<img src="/internal/gui/refresh.png" class="refresh-icon" onclick="refreshTable()" alt="Refresh Icon">
-<h2>Henvendelse table examine</h2>
+<h2>Henvendelse table examine <img src="/internal/gui/refresh.png" class="refresh-icon" onclick="refreshTable()" alt="Refresh Icon">
+</h2>
 
 <div id="authorization-container">
     <label for="token">Authorization Token:</label>
@@ -169,7 +188,7 @@
                     <td>${record.kjedeId}</td>
                     <td>${record.aktorId}</td>
                     <td>${record.fnr}</td>
-                    <td>${record.json}</td>
+                    <td onclick="showJsonPopup('${record.json}')">${record.json}</td>
                     <td>${record.lastModified}</td>
                     <td>${record.lastModifiedBySF}</td>
                 </tr>`
@@ -271,6 +290,33 @@
 
         return JSON.parse(jsonPayload);
     }
+
+    // Function to show a popup with prettified JSON data
+    const showJsonPopup = (jsonData) => {
+        // Create a popup element
+        const popup = document.createElement('div');
+        popup.classList.add('json-popup');
+
+        // Create a close button
+        const closeButton = document.createElement('span');
+        closeButton.classList.add('close-button');
+        closeButton.textContent = 'Close';
+        closeButton.onclick = () => {
+            // Remove the popup when the close button is clicked
+            popup.remove();
+        };
+
+        // Create a pre element to display the prettified JSON data
+        const jsonContent = document.createElement('pre');
+        jsonContent.textContent = JSON.stringify(JSON.parse(jsonData), null, 2);
+
+        // Append the close button and JSON content to the popup
+        popup.appendChild(closeButton);
+        popup.appendChild(jsonContent);
+
+        // Append the popup to the document body
+        document.body.appendChild(popup);
+    };
 </script>
 
 </body>
