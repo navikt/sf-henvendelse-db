@@ -188,7 +188,7 @@
                     <td>${record.kjedeId}</td>
                     <td>${record.aktorId}</td>
                     <td>${record.fnr}</td>
-                    <td onclick="showJsonPopup('${escapeCommasAndWhitespace(record.json)}')">${record.json}</td>
+                    <td onclick="showJsonPopup(event)">${record.json}</td>
                     <td>${record.lastModified}</td>
                     <td>${record.lastModifiedBySF}</td>
                 </tr>`
@@ -292,7 +292,9 @@
     }
 
     // Function to show a popup with prettified JSON data
-    const showJsonPopup = (jsonData) => {
+    const showJsonPopup = (event) => {
+        var tdElement = event.target;
+        var jsonData = tdElement.textContent;
         // Create a popup element
         const popup = document.createElement('div');
         popup.classList.add('json-popup');
