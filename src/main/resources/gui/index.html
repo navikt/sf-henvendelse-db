@@ -188,7 +188,7 @@
                     <td>${record.kjedeId}</td>
                     <td>${record.aktorId}</td>
                     <td>${record.fnr}</td>
-                    <td onclick="showJsonPopup('${escapeCommas(record.json)}')">${record.json}</td>
+                    <td onclick="showJsonPopup('${escapeCommasAndWhitespace(record.json)}')">${record.json}</td>
                     <td>${record.lastModified}</td>
                     <td>${record.lastModifiedBySF}</td>
                 </tr>`
@@ -320,6 +320,14 @@
 
     function escapeCommas(jsonString) {
         return jsonString.replace(/"([^"]+),([^"]+)"/g, '"$1\\,$2"');
+    }
+
+    function escapeCommasAndWhitespace(jsonString) {
+        // Replace commas within string values with an escaped version
+        var escapedCommas = jsonString.replace(/"([^"]+),([^"]+)"/g, '"$1\\,$2"');
+        // Replace whitespace characters within string values with an escaped version
+        var escapedWhitespace = escapedCommas.replace(/"([^"]+)\s+([^"]+)"/g, '"$1\\ $2"');
+        return escapedWhitespace;
     }
 </script>
 
