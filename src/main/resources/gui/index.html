@@ -188,7 +188,7 @@
                     <td>${record.kjedeId}</td>
                     <td>${record.aktorId}</td>
                     <td>${record.fnr}</td>
-                    <td onclick="showJsonPopup('${record.json}')">${record.json}</td>
+                    <td onclick="showJsonPopup(escapeCommas('${record.json}'))">${record.json}</td>
                     <td>${record.lastModified}</td>
                     <td>${record.lastModifiedBySF}</td>
                 </tr>`
@@ -317,6 +317,10 @@
         // Append the popup to the document body
         document.body.appendChild(popup);
     };
+
+    function escapeCommas(jsonString) {
+        return jsonString.replace(/"([^"]+),([^"]+)"/g, '"$1\\,$2"');
+    }
 </script>
 
 </body>
