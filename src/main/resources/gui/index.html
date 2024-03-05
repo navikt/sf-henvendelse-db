@@ -7,6 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <style>
+
+        .highlighted {
+            border: 1px solid black; /* Thin border */
+        }
+
         .json-popup {
             position: fixed;
             top: 50%;
@@ -291,10 +296,20 @@
         return JSON.parse(jsonPayload);
     }
 
+    var isPopupShowing = false;
     // Function to show a popup with prettified JSON data
     const showJsonPopup = (event) => {
+        // If a popup is already showing, do nothing
+        if (isPopupShowing) {
+            return;
+        }
         var tdElement = event.target;
         var jsonData = tdElement.textContent;
+
+        // Highlight the clicked <td> element
+        tdElement.classList.add('highlighted');
+
+        isPopupShowing = true;
         // Create a popup element
         const popup = document.createElement('div');
         popup.classList.add('json-popup');
@@ -304,6 +319,13 @@
         closeButton.classList.add('close-button');
         closeButton.textContent = '(X)';
         closeButton.onclick = () => {
+            // Reset the flag to false to indicate that the popup is closed
+            isPopupShowing = false;
+            // Remove the highlighting from all <td> elements
+            var tds = document.querySelectorAll('.json-td');
+            tds.forEach(function(td) {
+                td.classList.remove('highlighted');
+            });
             // Remove the popup when the close button is clicked
             popup.remove();
         };
