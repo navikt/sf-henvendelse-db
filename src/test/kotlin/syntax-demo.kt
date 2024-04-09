@@ -83,7 +83,6 @@ fun main() {
      * run: Invokes the block of code on the object itself, returning the result of the lambda expression. It is useful
      * for performing operations within the context of the object.
      */
-
     user?.let {
         // Safe access to 'data'
         // println(it.name)

@@ -97,7 +97,9 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                 if (jsonArray.size() < 1) {
                     Response(BAD_REQUEST).body("Batch JSON array must contain at least one JSON array")
                 } else {
-                    jsonArray.map { e -> validateJsonArray(e as JsonArray) }.firstOrNull { r -> r.isInvalid() }
+                    jsonArray
+                        .map { e -> validateJsonArray(e as JsonArray) }
+                        .firstOrNull { r -> r.isInvalid() }
                         ?.let { r ->
                             Response(BAD_REQUEST).body("Request contains json array with error: ${r.errorMessage}")
                         } ?: run {

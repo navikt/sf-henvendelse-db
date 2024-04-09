@@ -1,7 +1,7 @@
 package no.nav.sf.henvendelse.db
 
 /**
- * Naming convention applied to environment variable constants: a lowercase prefix separated from the actual constant, i.e. prefix_CONSTANT_VARIABLE.
+ * Naming convention applied to environment variable constants: a lowercase prefix separated from the actual constant, i.e. prefix_ENVIRONMENT_VARIABLE_NAME.
  *
  * Motivation:
  * The prefix provides contextual naming that describes the source and nature of the variables they represent while keeping the names short.
