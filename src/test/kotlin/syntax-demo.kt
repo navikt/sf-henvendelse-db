@@ -91,4 +91,9 @@ fun main() {
     user?.run {
         // println("$name")
     }
+
+    /**
+     * chain functions on iterables
+     */
+    // println((1..10).map { "Number $it" }.filter { it != "Number 1" })
 }
