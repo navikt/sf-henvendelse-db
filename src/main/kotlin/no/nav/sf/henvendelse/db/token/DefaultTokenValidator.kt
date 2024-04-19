@@ -5,6 +5,7 @@ import no.nav.security.token.support.core.configuration.MultiIssuerConfiguration
 import no.nav.security.token.support.core.http.HttpRequest
 import no.nav.security.token.support.core.jwt.JwtToken
 import no.nav.security.token.support.core.validation.JwtTokenValidationHandler
+import no.nav.sf.henvendelse.db.env
 import no.nav.sf.henvendelse.db.env_AZURE_APP_CLIENT_ID
 import no.nav.sf.henvendelse.db.env_AZURE_APP_WELL_KNOWN_URL
 import no.nav.sf.henvendelse.db.token.TokenValidator
@@ -16,8 +17,8 @@ import java.util.Optional
 
 class DefaultTokenValidator : TokenValidator {
     private val azureAlias = "azure"
-    private val azureUrl = System.getenv(env_AZURE_APP_WELL_KNOWN_URL)
-    private val azureAudience = System.getenv(env_AZURE_APP_CLIENT_ID)?.split(',') ?: listOf()
+    private val azureUrl = env(env_AZURE_APP_WELL_KNOWN_URL)
+    private val azureAudience = env(env_AZURE_APP_CLIENT_ID).split(',')
 
     private val multiIssuerConfiguration = MultiIssuerConfiguration(
         mapOf(

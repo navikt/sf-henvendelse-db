@@ -76,6 +76,9 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
 
 sourceSets {
@@ -90,4 +93,9 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
 tasks.withType(JavaCompile) {
     sourceCompatibility = "17"
     targetCompatibility = "17"
+}
+
+task runSyntaxDemo(type: JavaExec) {
+    main = 'Syntax_demoKt'
+    classpath = sourceSets.test.runtimeClasspath
 }

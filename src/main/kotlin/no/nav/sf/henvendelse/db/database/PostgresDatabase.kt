@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.config_CONTEXT
+import no.nav.sf.henvendelse.db.env
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.andWhere
@@ -18,14 +19,14 @@ const val NAIS_DB_PREFIX = "NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_"
 class PostgresDatabase {
     private val log = KotlinLogging.logger { }
 
-    private val context = System.getenv(config_CONTEXT)
+    private val context = env(config_CONTEXT)
 
-    private val dbUrl = System.getenv("$NAIS_DB_PREFIX${context}_URL")
-    private val dbHost = System.getenv("$NAIS_DB_PREFIX${context}_HOST")
-    private val dbPort = System.getenv("$NAIS_DB_PREFIX${context}_PORT")
-    private val dbName = System.getenv("$NAIS_DB_PREFIX${context}_DATABASE")
-    private val dbUsername = System.getenv("$NAIS_DB_PREFIX${context}_USERNAME")
-    private val dbPassword = System.getenv("$NAIS_DB_PREFIX${context}_PASSWORD")
+    private val dbUrl = env("$NAIS_DB_PREFIX${context}_URL")
+    private val dbHost = env("$NAIS_DB_PREFIX${context}_HOST")
+    private val dbPort = env("$NAIS_DB_PREFIX${context}_PORT")
+    private val dbName = env("$NAIS_DB_PREFIX${context}_DATABASE")
+    private val dbUsername = env("$NAIS_DB_PREFIX${context}_USERNAME")
+    private val dbPassword = env("$NAIS_DB_PREFIX${context}_PASSWORD")
 
     // Note: exposed Database connect prepares for connections but does not actually open connections
     // That is handled via transaction {} ensuring connections are opened and closed properly

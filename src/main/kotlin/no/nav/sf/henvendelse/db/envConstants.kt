@@ -18,3 +18,8 @@ const val env_AZURE_APP_CLIENT_ID = "AZURE_APP_CLIENT_ID"
 
 const val config_VIEW_PAGE_SIZE = "VIEW_PAGE_SIZE"
 const val config_CONTEXT = "CONTEXT"
+
+/**
+ * Shortcuts for fetching environment variables
+ */
+fun env(name: String): String = System.getenv(name) ?: throw NullPointerException("Missing env $name")
