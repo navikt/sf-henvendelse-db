@@ -33,7 +33,7 @@ jobs:
           java-version: 17
           distribution: 'temurin'
       - name: Setup Gradle to generate and submit dependency graphs
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/actions/setup-gradle@v3
         with:
           dependency-graph: generate-and-submit
       - name: Build JAR
@@ -61,16 +61,15 @@ jobs:
           CLUSTER: dev-gcp
           RESOURCE: .nais/dev.yaml
           VAR: image=${{ needs.build.outputs.image }}
-#  deploy-prod:
-#    name: Deploy to NAIS prod gcp
-#    needs: build
-#    if: github.ref == 'refs/heads/master'
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: nais/deploy/actions/deploy@v1
-#        env:
-#          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-#          CLUSTER: prod-gcp
-#          RESOURCE: .nais/prod.yaml
-#          VAR: image=${{ needs.build.outputs.image }}
+  deploy-prod:
+    name: Deploy to NAIS prod gcp
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nais/deploy/actions/deploy@v2
+        env:
+          CLUSTER: prod-gcp
+          RESOURCE: .nais/prod.yaml
+          VAR: image=${{ needs.build.outputs.image }}
