@@ -345,18 +345,6 @@
         // Append the popup to the document body
         document.body.appendChild(popup);
     };
-
-    function escapeCommas(jsonString) {
-        return jsonString.replace(/"([^"]+),([^"]+)"/g, '"$1\\,$2"');
-    }
-
-    function escapeCommasAndWhitespace(jsonString) {
-        // Replace commas within string values with an escaped version
-        var escapedCommas = jsonString.replace(/"([^"]+),([^"]+)"/g, '"$1\\,$2"');
-        // Replace whitespace characters within string values with an escaped version
-        var escapedWhitespace = escapedCommas.replace(/"([^"]+)\s+([^"]+)"/g, '"$1\\ $2"');
-        return escapedWhitespace;
-    }
 </script>
 
 </body>

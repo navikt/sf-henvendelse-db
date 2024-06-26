@@ -45,6 +45,8 @@ spec:
       enabled: true
       allowAllUsers: true
       tenant: trygdeetaten.no
+    sidecar:
+      enabled: true
   accessPolicy:
     inbound:
       rules:

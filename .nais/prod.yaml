@@ -48,6 +48,8 @@ spec:
     application:
       enabled: true
       allowAllUsers: true
+    sidecar:
+      enabled: true
   accessPolicy:
     inbound:
       rules:

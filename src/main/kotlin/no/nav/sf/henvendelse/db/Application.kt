@@ -41,7 +41,7 @@ class Application(
         "/internal/isReady" bind Method.GET to { Response(Status.OK) },
         "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
-        "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
+        "/internal/gui" loginbind Method.GET to static(ResourceLoader.Classpath("/gui")),
         "/internal/view" authbind Method.GET to gui.viewHandler,
         "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
         "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
@@ -53,8 +53,14 @@ class Application(
      * authbind: a variant of bind that takes care of authentication with use of tokenValidator
      */
     infix fun String.authbind(method: Method) = AuthRouteBuilder(this, method, tokenValidator)
+    infix fun String.loginbind(method: Method) = AuthRouteBuilder(this, method, tokenValidator, true)
 
-    data class AuthRouteBuilder(val path: String, val method: Method, private val tokenValidator: TokenValidator) {
+    data class AuthRouteBuilder(
+        val path: String,
+        val method: Method,
+        private val tokenValidator: TokenValidator,
+        val redirectToLogin: Boolean = false
+    ) {
         infix fun to(action: HttpHandler): RoutingHttpHandler =
             PathMethod(path, method) to { request ->
                 Metrics.apiCalls.labels(path).inc()
@@ -62,7 +68,11 @@ class Application(
                 if (token.isPresent) {
                     action(request)
                 } else {
-                    Response(Status.UNAUTHORIZED)
+                    if (redirectToLogin) {
+                        Response(Status.FOUND).header("Location", "/oauth2/login?redirect='/internal/gui'")
+                    } else {
+                        Response(Status.UNAUTHORIZED)
+                    }
                 }
             }
     }
