@@ -65,11 +65,13 @@ class Application(
             PathMethod(path, method) to { request ->
                 Metrics.apiCalls.labels(path).inc()
                 val token = tokenValidator.firstValidToken(request)
+                val log = KotlinLogging.logger { }
+                log.info { "Header ${request.header("Authorization")}, ValidToken ${token.isPresent}" }
                 if (token.isPresent) {
                     action(request)
                 } else {
                     if (redirectToLogin) {
-                        Response(Status.FOUND).header("Location", "/oauth2/login?redirect='/internal/gui'")
+                        Response(Status.FOUND).header("Location", "/oauth2/login?redirect=/internal/gui")
                     } else {
                         Response(Status.UNAUTHORIZED)
                     }
