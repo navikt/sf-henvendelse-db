@@ -41,7 +41,8 @@ class Application(
         "/internal/isReady" bind Method.GET to { Response(Status.OK) },
         "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
-        "/internal/gui" loginbind Method.GET to static(ResourceLoader.Classpath("/gui")),
+        "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
+        "/internal/login" loginbind Method.GET to static(ResourceLoader.Classpath("/gui")),
         "/internal/view" authbind Method.GET to gui.viewHandler,
         "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
         "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
@@ -66,7 +67,7 @@ class Application(
                 Metrics.apiCalls.labels(path).inc()
                 val token = tokenValidator.firstValidToken(request)
                 val log = KotlinLogging.logger { }
-                log.info { "Header ${request.header("Authorization")}, ValidToken ${token.isPresent}" }
+                log.info { "ValidToken on login bind ${token.isPresent}" }
                 if (token.isPresent) {
                     action(request)
                 } else {
