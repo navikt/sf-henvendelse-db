@@ -42,7 +42,19 @@ class Application(
         "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
         "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
-        "/internal/login" loginbind Method.GET to static(ResourceLoader.Classpath("/gui")),
+        "/internal/login" bind Method.GET to { request ->
+            val token = tokenValidator.firstValidToken(request)
+            val log = KotlinLogging.logger { }
+            log.info { "ValidToken on login bind ${token.isPresent}" }
+            if (token.isPresent) {
+                Response(Status.FOUND).header("Location", "/internal/gui")
+            } else {
+                Response(Status.FOUND).header(
+                    "Location",
+                    "/oauth2/login?redirect=%2Finternal%2Fgui"
+                )
+            }
+        },
         "/internal/view" authbind Method.GET to gui.viewHandler,
         "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
         "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
