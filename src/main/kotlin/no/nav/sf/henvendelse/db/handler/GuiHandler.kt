@@ -30,4 +30,18 @@ class GuiHandler(database: PostgresDatabase, gson: Gson) {
         val viewData = ViewData(page, pageCount(count), viewPageSize, count, result)
         Response(Status.OK).body(gson.toJson(viewData))
     }
+
+    val loginHandler: HttpHandler = {
+        Response(Status.FOUND).header(
+            "Location",
+            "/oauth2/login?redirect=%2Finternal%2Fgui"
+        )
+    }
+
+    val logoutHandler: HttpHandler = {
+        Response(Status.FOUND).header(
+            "Location",
+            "/oauth2/logout?redirect=%2Finternal%2Fgui"
+        )
+    }
 }

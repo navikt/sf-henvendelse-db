@@ -42,19 +42,8 @@ class Application(
         "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
         "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
-        "/internal/login" bind Method.GET to { request ->
-            val token = tokenValidator.firstValidToken(request)
-            val log = KotlinLogging.logger { }
-            log.info { "ValidToken on login bind ${token.isPresent}" }
-            if (token.isPresent) {
-                Response(Status.FOUND).header("Location", "/internal/gui")
-            } else {
-                Response(Status.FOUND).header(
-                    "Location",
-                    "/oauth2/login?redirect=%2Finternal%2Fgui"
-                )
-            }
-        },
+        "/internal/login" bind Method.GET to gui.loginHandler,
+        "/internal/logout" bind Method.GET to gui.logoutHandler,
         "/internal/view" authbind Method.GET to gui.viewHandler,
         "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
         "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
@@ -66,13 +55,11 @@ class Application(
      * authbind: a variant of bind that takes care of authentication with use of tokenValidator
      */
     infix fun String.authbind(method: Method) = AuthRouteBuilder(this, method, tokenValidator)
-    infix fun String.loginbind(method: Method) = AuthRouteBuilder(this, method, tokenValidator, true)
 
     data class AuthRouteBuilder(
         val path: String,
         val method: Method,
-        private val tokenValidator: TokenValidator,
-        val redirectToLogin: Boolean = false
+        private val tokenValidator: TokenValidator
     ) {
         infix fun to(action: HttpHandler): RoutingHttpHandler =
             PathMethod(path, method) to { request ->
@@ -83,11 +70,7 @@ class Application(
                 if (token.isPresent) {
                     action(request)
                 } else {
-                    if (redirectToLogin) {
-                        Response(Status.FOUND).header("Location", "/oauth2/login?redirect=/internal/gui")
-                    } else {
-                        Response(Status.UNAUTHORIZED)
-                    }
+                    Response(Status.UNAUTHORIZED)
                 }
             }
     }
