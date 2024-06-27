@@ -96,11 +96,11 @@ const loadNextPage = () => {
 };
 
 const login = () => {
-    window.location.href = '/internal/login';
+    window.location.href = '/oauth2/login?redirect=/internal/gui';
 }
 
 const logout = () => {
-    window.location.href = '/internal/logout';
+    window.location.href = '/oauth2/logout?redirect=/internal/gui';
 }
 
 var isPopupShowing = false;
@@ -151,6 +151,7 @@ const showJsonPopup = (event) => {
 
 const updateExpirationTime = (expireTime) => {
     const expireInfo = document.getElementById('expire-info');
+    const logoutButtonHolder = document.getElementById('logout-button-holder');
 
     const updateTime = () => {
         const currentTime = Date.now();
@@ -160,8 +161,10 @@ const updateExpirationTime = (expireTime) => {
             const minutes = Math.floor(timeLeft / 60000);
             const seconds = Math.floor((timeLeft % 60000) / 1000);
             expireInfo.textContent = `${minutes} minutes and ${seconds} seconds remaining`;
+            logoutButtonHolder.innerHTML = `<button id="logout-button" onClick="logout()">Logout</button>`
         } else {
             expireInfo.textContent = 'Token has expired';
+            logoutButtonHolder.innerHTML = ``
             clearInterval(interval);
         }
     };

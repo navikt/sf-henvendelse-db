@@ -42,8 +42,6 @@ class Application(
         "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
         "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
-        "/internal/login" bind Method.GET to gui.loginHandler,
-        "/internal/logout" bind Method.GET to gui.logoutHandler,
         "/internal/view" authbind Method.GET to gui.viewHandler,
         "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
         "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
