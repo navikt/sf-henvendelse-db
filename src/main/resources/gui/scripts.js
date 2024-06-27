@@ -20,7 +20,7 @@ const loadTablePage = async (page) => {
 
     if (response.status === 401) {
         // Unauthorized
-        document.getElementById('authorization-message').textContent = 'Unauthorized. <button onclick="login()">Login</button>';
+        document.getElementById('authorization-message').innerHTML = 'Unauthorized. <button onclick="login()">Login</button>';
         return;
     }
 
