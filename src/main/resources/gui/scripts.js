@@ -5,7 +5,7 @@ let pageCount = 1;
 let authToken = '';
 let countdownInterval;
 
-window.onload = function () {
+window.onload = function() {
     console.log("Do on load");
     loadTablePage(currentPage);
 };
@@ -14,14 +14,13 @@ const loadTablePage = async (page) => {
     const response = await fetch('/internal/view?page=' + page, {
         method: 'GET',
         headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
+            'Content-Type': 'application/json'
         }
     });
 
     if (response.status === 401) {
         // Unauthorized
-        document.getElementById('authorization-message').textContent = 'Unauthorized. Please enter a valid Authorization Token.';
+        document.getElementById('authorization-message').textContent = 'Unauthorized. <button onclick="login()">Login</button>';
         return;
     }
 
@@ -88,6 +87,10 @@ const loadNextPage = () => {
         loadTablePage(currentPage + 1);
     }
 };
+
+const login = () => {
+    window.location.href = '/internal/login';
+}
 
 const authorize = () => {
     authToken = document.getElementById('token').value;
@@ -171,7 +174,7 @@ const showJsonPopup = (event) => {
         isPopupShowing = false;
         // Remove the highlighting from all <td> elements
         var tds = document.querySelectorAll('.json-td');
-        tds.forEach(function (td) {
+        tds.forEach(function(td) {
             td.classList.remove('highlighted');
         });
         // Remove the popup when the close button is clicked
