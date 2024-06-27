@@ -125,11 +125,22 @@ th#bySFColumn {
     justify-content: flex-end;
     align-items: center;
     gap: 10px;
-    padding-bottom: 3px;
+    padding: 2px;
+    background-color: #e0e0e0;
 }
 
 #name-info, #expire-info {
     margin: 0;
+}
+
+#name-info {
+    font-size: 13px;
+    color: #183f5e;
+}
+
+#expire-info {
+    font-size: 13px;
+    color: #185d5e;
 }
 
 #logout-button {
@@ -140,4 +151,8 @@ th#bySFColumn {
     display: inline-block;
     padding: 2px 4px;
     cursor: pointer;
+}
+
+#table-container {
+    margin: 0px 2px 2px 2px;
 }
