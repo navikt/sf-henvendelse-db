@@ -9,7 +9,9 @@ import no.nav.sf.henvendelse.db.env
 import no.nav.sf.henvendelse.db.env_AZURE_APP_CLIENT_ID
 import no.nav.sf.henvendelse.db.env_AZURE_APP_WELL_KNOWN_URL
 import no.nav.sf.henvendelse.db.token.TokenValidator
+import no.nav.sf.henvendelse.db.token.expireTime
 import no.nav.sf.henvendelse.db.token.isFromSalesforce
+import no.nav.sf.henvendelse.db.token.nameClaim
 import org.http4k.core.Request
 import java.io.File
 import java.net.URL
@@ -38,13 +40,9 @@ class DefaultTokenValidator : TokenValidator {
 
     override fun hasTokenFromSalesforce(request: Request) = this.firstValidToken(request).get().isFromSalesforce()
 
-    override fun nameClaim(request: Request): String {
-        TODO("Not yet implemented")
-    }
+    override fun nameClaim(request: Request): String = this.firstValidToken(request).get().nameClaim()
 
-    override fun expireTime(request: Request): Long {
-        TODO("Not yet implemented")
-    }
+    override fun expireTime(request: Request): Long = this.firstValidToken(request).get().expireTime()
 
     private fun Request.toNavRequest(): HttpRequest {
         val req = this
