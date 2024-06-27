@@ -8,4 +8,8 @@ interface TokenValidator {
     fun firstValidToken(request: Request): Optional<JwtToken>
 
     fun hasTokenFromSalesforce(request: Request): Boolean
+
+    fun nameClaim(request: Request): String
+
+    fun expireTime(request: Request): Long
 }

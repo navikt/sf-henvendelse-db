@@ -38,6 +38,14 @@ class DefaultTokenValidator : TokenValidator {
 
     override fun hasTokenFromSalesforce(request: Request) = this.firstValidToken(request).get().isFromSalesforce()
 
+    override fun nameClaim(request: Request): String {
+        TODO("Not yet implemented")
+    }
+
+    override fun expireTime(request: Request): Long {
+        TODO("Not yet implemented")
+    }
+
     private fun Request.toNavRequest(): HttpRequest {
         val req = this
         return object : HttpRequest {

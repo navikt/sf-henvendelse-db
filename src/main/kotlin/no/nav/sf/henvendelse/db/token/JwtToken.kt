@@ -13,3 +13,21 @@ fun JwtToken.isFromSalesforce(): Boolean {
         false
     }
 }
+
+fun JwtToken.nameClaim(): String {
+    return try {
+        this.jwtTokenClaims.getStringClaim("name")
+    } catch (e: Exception) {
+        log.error { "Failed to parse name claim from token - not OBO token?" }
+        ""
+    }
+}
+
+fun JwtToken.expireTime(): Long {
+    return try {
+        this.jwtTokenClaims.expirationTime.toInstant().toEpochMilli()
+    } catch (e: Exception) {
+        log.error { "Failed to parse expiretime from token" }
+        -1L
+    }
+}

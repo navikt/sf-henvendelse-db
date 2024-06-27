@@ -27,16 +27,6 @@ table.blueTable td.highlighted {
     cursor: pointer;
 }
 
-.refresh-icon {
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-}
-
-.refresh-icon:hover {
-    background-color: #5592bb;
-}
-
 table.blueTable {
     font-family: 'Courier New', Courier, monospace;
     border: 1px solid #1C6EA4;
