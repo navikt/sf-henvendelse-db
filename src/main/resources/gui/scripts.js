@@ -30,6 +30,13 @@ const loadTablePage = async (page) => {
     pageCount = data.pageCount
     pageSize = data.pageSize
     count = data.count
+
+    const nameInfo = document.getElementById('name-info');
+
+    nameInfo.textContent = data.username
+
+    updateExpirationTime(data.expireTime);
+
     // Display records in a table
     const tableContainer = document.getElementById('table-container');
 
@@ -191,4 +198,28 @@ const showJsonPopup = (event) => {
 
     // Append the popup to the document body
     document.body.appendChild(popup);
+};
+
+const updateExpirationTime = (expireTime) => {
+    const expireInfo = document.getElementById('expire-info');
+
+    const updateTime = () => {
+        const currentTime = Date.now();
+        const timeLeft = expireTime - currentTime;
+
+        if (timeLeft > 0) {
+            const minutes = Math.floor(timeLeft / 60000);
+            const seconds = Math.floor((timeLeft % 60000) / 1000);
+            expireInfo.textContent = `${minutes} minutes and ${seconds} seconds remaining`;
+        } else {
+            expireInfo.textContent = 'Token has expired';
+            clearInterval(interval);
+        }
+    };
+
+    // Initial call to display time immediately
+    updateTime();
+
+    // Update every second
+    const interval = setInterval(updateTime, 1000);
 };
