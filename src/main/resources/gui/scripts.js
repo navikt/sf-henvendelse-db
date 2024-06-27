@@ -21,10 +21,10 @@ const loadTablePage = async (page) => {
     if (response.status === 401) {
         // Unauthorized
         document.getElementById('authorization-message').innerHTML = 'Unauthorized <button id="login-button" onclick="login()">Login</button>';
+        clearInterval(interval);
         document.getElementById('name-info').innerHTML = ''
         document.getElementById('expire-info').innerHTML = ''
         document.getElementById('logout-button-holder').innerHTML = ''
-
         return;
     }
 
