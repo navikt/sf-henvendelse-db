@@ -1,3 +1,9 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
 .json-td {
     word-wrap: anywhere;
 }
@@ -116,8 +122,10 @@ th#bySFColumn {
 
 #info-container {
     display: flex;
+    justify-content: flex-end;
     align-items: center;
     gap: 10px;
+    padding-bottom: 3px;
 }
 
 #name-info, #expire-info {
@@ -126,9 +134,10 @@ th#bySFColumn {
 
 #logout-button {
     color: white;
+    border: none;
     background-color: #008CBA;
-    border-radius: 25%;
+    border-radius: 10%;
     display: inline-block;
-    padding: 2px 2px;
+    padding: 2px 4px;
     cursor: pointer;
 }
