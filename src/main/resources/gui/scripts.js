@@ -99,59 +99,8 @@ const login = () => {
     window.location.href = '/internal/login';
 }
 
-const authorize = () => {
-    authToken = document.getElementById('token').value;
-    console.log(`Authorization token set: ${authToken}`);
-    // Parse the JWT token to get expiration time
-    document.getElementById('expiration-info').textContent = '';
-    // Clear previous countdown interval
-    clearInterval(countdownInterval);
-    try {
-        const tokenData = parseJwt(authToken);
-        const expirationTime = tokenData.exp * 1000; // Convert seconds to milliseconds
-        // Calculate remaining time
-        const now = Date.now();
-        const remainingTime = expirationTime - now;
-
-        // Convert remaining time to minutes and seconds
-        const minutes = Math.floor(remainingTime / (1000 * 60));
-        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-
-        // Display expiration info
-        document.getElementById('expiration-info').textContent = `Token expires in ${minutes} minutes and ${seconds} seconds.`;
-
-        // Update the countdown every second
-        countdownInterval = setInterval(() => {
-            const now = Date.now();
-            const remainingTime = expirationTime - now;
-
-            // If the token has expired, clear the interval and show an expired message
-            if (remainingTime <= 0) {
-                clearInterval(countdownInterval);
-                document.getElementById('expiration-info').textContent = 'Token has expired.';
-            } else {
-                const minutes = Math.floor(remainingTime / (1000 * 60));
-                const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
-                document.getElementById('expiration-info').textContent = `Token expires in ${minutes} minutes and ${seconds} seconds.`;
-            }
-        }, 1000);
-    } catch (error) {
-        document.getElementById('authorization-message').textContent = 'Invalid JWT token format.';
-        document.getElementById('expiration-info').textContent = '';
-    }
-
-    loadTablePage(currentPage);
-};
-
-// Function to parse JWT token
-function parseJwt(token) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-
-    return JSON.parse(jsonPayload);
+const logout = () => {
+    window.location.href = '/internal/logout';
 }
 
 var isPopupShowing = false;

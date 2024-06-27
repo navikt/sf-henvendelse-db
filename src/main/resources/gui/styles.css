@@ -113,3 +113,19 @@ th#bySFColumn {
     color: red;
     font-weight: bold;
 }
+
+#info-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#name-info, #expire-info {
+    margin: 0;
+}
+
+#logout-button {
+    margin-left: auto;
+    padding: 5px 10px;
+    cursor: pointer;
+}
