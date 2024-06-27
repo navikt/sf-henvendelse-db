@@ -153,6 +153,8 @@ const showJsonPopup = (event) => {
     document.body.appendChild(popup);
 };
 
+let interval;
+
 const updateExpirationTime = (expireTime) => {
     const expireInfo = document.getElementById('expire-info');
     const logoutButtonHolder = document.getElementById('logout-button-holder');
@@ -176,6 +178,10 @@ const updateExpirationTime = (expireTime) => {
     // Initial call to display time immediately
     updateTime();
 
+    if (interval) {
+        clearInterval(interval);
+    }
+
     // Update every second
-    const interval = setInterval(updateTime, 1000);
+    interval = setInterval(updateTime, 1000);
 };
