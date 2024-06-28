@@ -43,8 +43,11 @@ spec:
   azure:
     application:
       enabled: true
-      allowAllUsers: true
       tenant: trygdeetaten.no
+      allowAllUsers: false
+      claims:
+        groups:
+          - id: "d12fdb94-ea30-452b-ad43-af1a3ab30157" # Alle-i-IT
     sidecar:
       enabled: true
   accessPolicy:

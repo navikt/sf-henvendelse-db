@@ -47,7 +47,11 @@ spec:
   azure:
     application:
       enabled: true
-      allowAllUsers: true
+      allowAllUsers: false
+      claims:
+        groups:
+          - id: "3255b97c-97e0-400c-bfa5-cfa787fb326b" # Nais-team-teamcrm
+          - id: "33b2c77f-7bd0-4924-8adf-7ff039694705" # Nais-team-teamnks
     sidecar:
       enabled: true
   accessPolicy:
