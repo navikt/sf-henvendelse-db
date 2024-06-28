@@ -63,8 +63,6 @@ class Application(
             PathMethod(path, method) to { request ->
                 Metrics.apiCalls.labels(path).inc()
                 val token = tokenValidator.firstValidToken(request)
-                val log = KotlinLogging.logger { }
-                log.info { "ValidToken on login bind ${token.isPresent}" }
                 if (token.isPresent) {
                     action(request)
                 } else {

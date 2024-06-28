@@ -57,8 +57,6 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: itestapp
-          namespace: teamcrm
         - application: salesforce
           namespace: teamcrm
           cluster: prod-external
