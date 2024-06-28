@@ -8,6 +8,7 @@ import no.nav.sf.henvendelse.db.token.TokenValidator
 import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
+import java.io.File
 
 class GuiHandler(database: PostgresDatabase, gson: Gson, tokenValidator: TokenValidator) {
     private val viewPageSize = System.getenv(config_VIEW_PAGE_SIZE).toInt()
@@ -38,6 +39,7 @@ class GuiHandler(database: PostgresDatabase, gson: Gson, tokenValidator: TokenVa
             username = tokenValidator.nameClaim(it),
             expireTime = tokenValidator.expireTime(it)
         )
+        File("/tmp/latestviewtoken").writeText(tokenValidator.firstValidToken(it).get().tokenAsString)
         Response(Status.OK).body(gson.toJson(viewData))
     }
 }
