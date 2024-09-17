@@ -10,7 +10,6 @@ import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
 import java.io.StringWriter
-import java.lang.Exception
 
 object Metrics {
     private val log = KotlinLogging.logger { }
