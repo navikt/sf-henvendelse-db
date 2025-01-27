@@ -17,9 +17,6 @@ spec:
     path: /internal/isAlive
   readiness:
     path: /internal/isReady
-  redis:
-    - instance: henvendelser # Determines env variable names
-      access: readwrite
   prometheus:
     enabled: true
     path: /internal/metrics
