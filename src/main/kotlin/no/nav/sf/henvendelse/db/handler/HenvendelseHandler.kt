@@ -12,6 +12,7 @@ import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.OK
+import java.io.File
 
 const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
@@ -144,5 +145,20 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             val result = database.henteHenvendelserByAktorId(aktorId)
             Response(OK).body(gson.toJson(result))
         }
+    }
+
+    var loggedCacheRequests = 0
+    val loggedCacheRequestsLimit = 20
+
+    val cacheHenvendelselistePost: HttpHandler = {
+        loggedCacheRequests++
+        if (loggedCacheRequests <= loggedCacheRequestsLimit) {
+            File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}").writeText(it.toMessage())
+        }
+        Response(OK)
+    }
+
+    val cacheHenvendelselisteGet: HttpHandler = {
+        Response(OK)
     }
 }

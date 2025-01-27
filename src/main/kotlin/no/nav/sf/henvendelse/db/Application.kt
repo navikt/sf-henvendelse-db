@@ -46,7 +46,9 @@ class Application(
         "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
         "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
         "/henvendelse" authbind Method.GET to henvendelse.fetchHenvendelseByKjedeIdHandler,
-        "/henvendelser" authbind Method.GET to henvendelse.fetchHenvendelserByAktorIdHandler
+        "/henvendelser" authbind Method.GET to henvendelse.fetchHenvendelserByAktorIdHandler,
+        "/cache/henvendelseliste" authbind Method.POST to henvendelse.cacheHenvendelselistePost,
+        "/cache/henvendelseliste" authbind Method.GET to henvendelse.cacheHenvendelselisteGet,
     )
 
     /**
