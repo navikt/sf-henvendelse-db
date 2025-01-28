@@ -17,6 +17,9 @@ spec:
     path: /internal/isAlive
   readiness:
     path: /internal/isReady
+  valkey:
+    - instance: henvendelser # Determines env variable names
+      access: readwrite
   prometheus:
     enabled: true
     path: /internal/metrics
