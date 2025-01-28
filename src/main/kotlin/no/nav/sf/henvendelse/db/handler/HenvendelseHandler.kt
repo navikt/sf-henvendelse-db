@@ -161,4 +161,18 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
     val cacheHenvendelselisteGet: HttpHandler = {
         Response(OK)
     }
+
+    val cacheHenvendelselisteDelete: HttpHandler = {
+        val aktorIdParam = it.query(AKTOR_ID)
+        if (aktorIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else {
+            val aktorIds = aktorIdParam.split(",")
+            log.info { "Received delete cache entry call for aktorIds ${aktorIds.joinToString(" ")}" }
+            aktorIds.forEach {
+                // Clear by cache key
+            }
+            Response(OK)
+        }
+    }
 }

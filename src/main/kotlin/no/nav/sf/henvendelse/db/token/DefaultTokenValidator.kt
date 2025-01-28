@@ -55,4 +55,23 @@ class DefaultTokenValidator : TokenValidator {
             }
         }
     }
+
+    var initialCheckPassed = false
+    /*
+    fun isReady(): Boolean {
+        fun createDummyRequest(): Request {
+            return Request(Method.GET, "/dummy")
+                .header("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c")
+        }
+        return if (initialCheckPassed) {
+            true
+        } else {
+            firstValidToken(createDummyRequest())
+            // If Connection to Entra is problematic, the JwtTokenValidationHandler will fail to initialize
+            // If reached this part, assume ok
+            initialCheckPassed = true
+            false
+        }
+    }
+     */
 }

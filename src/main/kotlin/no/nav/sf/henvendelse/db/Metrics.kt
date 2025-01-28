@@ -18,6 +18,8 @@ object Metrics {
 
     val apiCalls: Counter = registerLabelCounter("api_calls", "ingress")
 
+    val cacheSize: Gauge = registerGauge("cache_size")
+
     fun registerGauge(name: String): Gauge {
         return Gauge.build().name(name).help(name).register()
     }

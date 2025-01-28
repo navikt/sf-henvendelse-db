@@ -6,6 +6,7 @@ import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.handler.GuiHandler
 import no.nav.sf.henvendelse.db.handler.HenvendelseHandler
 import no.nav.sf.henvendelse.db.token.TokenValidator
+import no.nav.sf.henvendelse.db.token.Valkey
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -38,7 +39,7 @@ class Application(
 
     fun api(): HttpHandler = routes(
         "/internal/isAlive" bind Method.GET to { Response(Status.OK) },
-        "/internal/isReady" bind Method.GET to { Response(Status.OK) },
+        "/internal/isReady" bind Method.GET to isReadyHttpHandler,
         "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
         "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
         "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
@@ -49,6 +50,7 @@ class Application(
         "/henvendelser" authbind Method.GET to henvendelse.fetchHenvendelserByAktorIdHandler,
         "/cache/henvendelseliste" authbind Method.POST to henvendelse.cacheHenvendelselistePost,
         "/cache/henvendelseliste" authbind Method.GET to henvendelse.cacheHenvendelselisteGet,
+        "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete
     )
 
     /**
@@ -71,5 +73,13 @@ class Application(
                     Response(Status.UNAUTHORIZED)
                 }
             }
+    }
+
+    private val isReadyHttpHandler: HttpHandler = {
+        if (Valkey.isReady()) {
+            Response(Status.OK)
+        } else {
+            Response(Status.SERVICE_UNAVAILABLE)
+        }
     }
 }
