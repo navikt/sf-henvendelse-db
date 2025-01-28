@@ -155,8 +155,111 @@
           }
         }
       }
+    },
+    "/cache/henvendelseliste": {
+      "get": {
+        "tags": [
+          "cache"
+        ],
+        "description": "Returnerer cache av henvendelser for en aktør",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": "[{\"tilknyttetEnhet\":null,\"sladding\":false,\"sistEndretAv\":null,\"opprinneligGT\":null,\"opprinneligEnhet\":null,\"opprettetDato\":\"2024-07-09T14:22:19.000+02:00\",\"meldinger\":[{}],\"markeringer\":null,\"kontorsperre\":null,\"kjedeId\":\"a1a82422a7f5344cae\",\"kasseringsDato\":null,\"journalposter\":[{}],\"henvendelseType\":\"SAMTALEREFERAT\",\"henvendelseId\":null,\"gjeldendeTemagruppe\":\"PENS\",\"gjeldendeTema\":\"SUP\",\"fnr\":\"99999999999\",\"feilsendt\":null,\"avsluttetDato\":\"2024-07-09T14:22:19.000+02:00\",\"aktorId\":\"1234567890123\"}]"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal service error"
+          }
+        },
+        "parameters": [
+          {
+            "name": "AKTOR_ID",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id til aktøren henvendelsene gjelder"
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "cache"
+        ],
+        "description": "Lagrer henvendelseliste for en aktør",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type" : "object"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": "OK"
+              }
+            }
+          },
+          "401": {
+            "description" : "Unauthorized"
+          },
+          "500": {
+            "description" : "Internal service error"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "cache"
+        ],
+        "description": "Sletter henvendelseliste for en aktør",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "example": "Is deleteed"
+              }
+            }
+          },
+          "401": {
+            "description" : "Unauthorized"
+          },
+          "500": {
+            "description" : "Internal service error"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "AKTOR_ID",
+          "in": "query",
+          "required": true,
+          "schema": {
+            "type": "string"
+          },
+          "description": "Id til aktøren henvendelsene gjelder"
+        }
+      ]
     }
-  },
+    },
   "security": [
     {
       "Authorization": []
