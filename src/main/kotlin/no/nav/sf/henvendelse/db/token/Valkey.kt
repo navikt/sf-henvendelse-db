@@ -40,11 +40,10 @@ object Valkey {
     fun connectToRedisson(): RedissonClient {
         val config = Config()
 
-        val redisUri = env(env_VALKEY_URI_HENVENDELSER).replace("valkeys://", "rediss://")
-        config.useSingleServer().apply {
-            address = redisUri
-            username = env(env_VALKEY_USERNAME_HENVENDELSER)
-            password = env(env_VALKEY_PASSWORD_HENVENDELSER)
+        config.useClusterServers().apply {
+            addNodeAddress(env(env_VALKEY_URI_HENVENDELSER)) // Support for multiple nodes
+            setUsername(env(env_VALKEY_USERNAME_HENVENDELSER))
+            setPassword(env(env_VALKEY_PASSWORD_HENVENDELSER))
         }
 
         return Redisson.create(config)
