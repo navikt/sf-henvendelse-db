@@ -39,10 +39,12 @@ object Valkey {
 
     fun connectToRedisson(): RedissonClient {
         val config = Config()
+
+        val redisUri = env(env_VALKEY_URI_HENVENDELSER).replace("valkeys://", "rediss://")
         config.useSingleServer().apply {
-            address = env(env_VALKEY_URI_HENVENDELSER) // Redis URI (e.g., redis://localhost:6379)
-            username = env(env_VALKEY_USERNAME_HENVENDELSER) // Optional: Username for Redis authentication
-            password = env(env_VALKEY_PASSWORD_HENVENDELSER) // Optional: Password for Redis authentication
+            address = redisUri
+            username = env(env_VALKEY_USERNAME_HENVENDELSER)
+            password = env(env_VALKEY_PASSWORD_HENVENDELSER)
         }
 
         return Redisson.create(config)
