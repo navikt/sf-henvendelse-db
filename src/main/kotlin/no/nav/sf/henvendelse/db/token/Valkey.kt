@@ -62,6 +62,7 @@ object Valkey {
         try {
             // Metrics.cacheSize.set(Valkey.dbSize().toDouble())
         } catch (e: Exception) {
+
             log.warn { "Failed to query Redis dbSize" }
         }
         runBlocking { delay(840000) } // 14 min
