@@ -26,17 +26,22 @@ object Valkey {
         return if (initialCheckPassed) {
             true
         } else {
-            val redissonClient = connectToRedisson()
-            log.info { "Past connection" }
-            var response: Long
-            val queryTime = measureTimeMillis {
-                val mapCache: RMapCache<String, String> = redissonClient.getMapCache(cacheName_HENVENDELSELISTE)
+            try {
+                val redissonClient = connectToRedisson()
+                log.info { "Past connection" }
+                var response: Long
+                val queryTime = measureTimeMillis {
+                    val mapCache: RMapCache<String, String> = redissonClient.getMapCache(cacheName_HENVENDELSELISTE)
+                }
+                log.info { "Initial check query time $queryTime ms" }
+                if (queryTime < 100) {
+                    initialCheckPassed = true
+                }
+                false
+            } catch (e: java.lang.Exception) {
+                log.error { e.printStackTrace() }
+                false
             }
-            log.info { "Initial check query time $queryTime ms" }
-            if (queryTime < 100) {
-                initialCheckPassed = true
-            }
-            false
         }
     }
 
