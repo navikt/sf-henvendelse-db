@@ -27,6 +27,7 @@ object Valkey {
         return if (initialCheckPassed) {
             true
         } else {
+            val redissonClient = connectToRedisson()
             var response: Long
             val queryTime = measureTimeMillis {
                 val mapCache: RMapCache<String, String> = redissonClient.getMapCache(cacheName_HENVENDELSELISTE)
@@ -49,17 +50,17 @@ object Valkey {
         }
 
         config.useSingleServer().apply {
-            address = env(env_VALKEY_URI_HENVENDELSER) // Support for multiple nodes
+            address = env(env_VALKEY_URI_HENVENDELSER)
             username = env(env_VALKEY_USERNAME_HENVENDELSER)
             password = env(env_VALKEY_PASSWORD_HENVENDELSER)
             sslVerificationMode = SslVerificationMode.NONE // Disable strict hostname verification
-            sslProvider = SslProvider.JDK
+            sslProvider = SslProvider.OPENSSL
         }
 
         return Redisson.create(config)
     }
 
-    val redissonClient = connectToRedisson()
+    // val redissonClient = connectToRedisson()
 
     tailrec fun cacheQueryLoop() {
         runBlocking { delay(60000) } // 1 min
