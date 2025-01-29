@@ -76,8 +76,6 @@ object Valkey {
             sslVerificationMode = org.redisson.config.SslVerificationMode.NONE // Optional, based on your server's SSL setup
         }
         return Redisson.create(config)
-
-        return Redisson.create(config)
     }
 
     // val redissonClient = connectToRedisson()
