@@ -7,8 +7,8 @@ import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.env
+import no.nav.sf.henvendelse.db.env_REDIS_URI_HENVENDELSER
 import no.nav.sf.henvendelse.db.env_VALKEY_PASSWORD_HENVENDELSER
-import no.nav.sf.henvendelse.db.env_VALKEY_URI_HENVENDELSER
 import no.nav.sf.henvendelse.db.env_VALKEY_USERNAME_HENVENDELSER
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
@@ -62,8 +62,9 @@ object Valkey {
 
     fun connectViaRedisson(): RedissonClient {
         val config = org.redisson.config.Config()
+        // Example: "valkeys://valkey-teamnks-henvendelser-nav-dev.k.aivencloud.com:26483"
 
-        val uri = env(env_VALKEY_URI_HENVENDELSER) // Example: "valkeys://valkey-teamnks-henvendelser-nav-dev.k.aivencloud.com:26483"
+        val uri = env(env_REDIS_URI_HENVENDELSER)
         val usernameEnv = env(env_VALKEY_USERNAME_HENVENDELSER)
         val passwordEnv = env(env_VALKEY_PASSWORD_HENVENDELSER)
 
