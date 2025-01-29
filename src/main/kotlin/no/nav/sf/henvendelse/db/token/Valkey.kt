@@ -11,6 +11,8 @@ import org.redisson.Redisson
 import org.redisson.api.RMapCache
 import org.redisson.api.RedissonClient
 import org.redisson.config.Config
+import org.redisson.config.SslProvider
+import org.redisson.config.SslVerificationMode
 import kotlin.system.measureTimeMillis
 
 const val cacheName_HENVENDELSELISTE = "henvendelseliste"
@@ -41,7 +43,7 @@ object Valkey {
         val config = Config()
 
         log.info {
-            "Attempt connection to ${env(env_VALKEY_URI_HENVENDELSER)}, username length ${env(env_VALKEY_USERNAME_HENVENDELSER).length}, password length ${env(
+            "Attempt connection to ${env(env_VALKEY_URI_HENVENDELSER)}, username ${env(env_VALKEY_USERNAME_HENVENDELSER)}, password length ${env(
                 env_VALKEY_PASSWORD_HENVENDELSER
             ).length}"
         }
@@ -50,6 +52,8 @@ object Valkey {
             address = env(env_VALKEY_URI_HENVENDELSER) // Support for multiple nodes
             username = env(env_VALKEY_USERNAME_HENVENDELSER)
             password = env(env_VALKEY_PASSWORD_HENVENDELSER)
+            sslVerificationMode = SslVerificationMode.NONE // Disable strict hostname verification
+            sslProvider = SslProvider.JDK
         }
 
         return Redisson.create(config)
