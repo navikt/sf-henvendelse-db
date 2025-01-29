@@ -18,7 +18,7 @@ spec:
   readiness:
     path: /internal/isReady
   valkey:
-    - instance: henvendelser # Determines env variable names
+    - instance: henvendelseliste # Determines env variable names
       access: readwrite
   prometheus:
     enabled: true

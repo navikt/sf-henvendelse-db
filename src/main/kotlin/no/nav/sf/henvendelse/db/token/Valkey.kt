@@ -7,9 +7,11 @@ import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.env
-import no.nav.sf.henvendelse.db.env_REDIS_URI_HENVENDELSER
-import no.nav.sf.henvendelse.db.env_VALKEY_PASSWORD_HENVENDELSER
-import no.nav.sf.henvendelse.db.env_VALKEY_USERNAME_HENVENDELSER
+import no.nav.sf.henvendelse.db.env_REDIS_URI_HENVENDELSELISTE
+import no.nav.sf.henvendelse.db.env_VALKEY_HOST_HENVENDELSELISTE
+import no.nav.sf.henvendelse.db.env_VALKEY_PASSWORD_HENVENDELSELISTE
+import no.nav.sf.henvendelse.db.env_VALKEY_PORT_HENVENDELSELISTE
+import no.nav.sf.henvendelse.db.env_VALKEY_USERNAME_HENVENDELSELISTE
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
 import java.io.File
@@ -48,13 +50,13 @@ object Valkey {
 
     fun connectViaLettuce(): RedisCommands<String, String> {
         val staticCredentialsProvider = StaticCredentialsProvider(
-            env(env_VALKEY_USERNAME_HENVENDELSER),
-            env(env_VALKEY_USERNAME_HENVENDELSER).toCharArray()
+            env(env_VALKEY_USERNAME_HENVENDELSELISTE),
+            env(env_VALKEY_PASSWORD_HENVENDELSELISTE).toCharArray()
         )
 
-        val redisURI = RedisURI.Builder.redis(env("VALKEY_HOST_HENVENDELSER"), env("VALKEY_PORT_HENVENDELSER").toInt())
+        val redisURI = RedisURI.Builder.redis(env(env(env_VALKEY_HOST_HENVENDELSELISTE)), env(env_VALKEY_PORT_HENVENDELSELISTE).toInt())
             .withSsl(true)
-            .withAuthentication(env(env_VALKEY_USERNAME_HENVENDELSER), env(env_VALKEY_PASSWORD_HENVENDELSER).toCharArray())
+            .withAuthentication(env(env_VALKEY_USERNAME_HENVENDELSELISTE), env(env_VALKEY_PASSWORD_HENVENDELSELISTE).toCharArray())
             .build()
 
         // redisURI.credentialsProvider = staticCredentialsProvider
@@ -74,9 +76,9 @@ object Valkey {
         val config = org.redisson.config.Config()
         // Example: "valkeys://valkey-teamnks-henvendelser-nav-dev.k.aivencloud.com:26483"
 
-        val uri = env(env_REDIS_URI_HENVENDELSER)
-        val usernameEnv = env(env_VALKEY_USERNAME_HENVENDELSER)
-        val passwordEnv = env(env_VALKEY_PASSWORD_HENVENDELSER)
+        val uri = env(env_REDIS_URI_HENVENDELSELISTE)
+        val usernameEnv = env(env_VALKEY_USERNAME_HENVENDELSELISTE)
+        val passwordEnv = env(env_VALKEY_PASSWORD_HENVENDELSELISTE)
 
         config.useSingleServer().apply {
             address = uri
