@@ -2,6 +2,7 @@ package no.nav.sf.henvendelse.db.token
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
+import io.lettuce.core.StaticCredentialsProvider
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import mu.KotlinLogging
@@ -11,6 +12,7 @@ import no.nav.sf.henvendelse.db.env_VALKEY_PASSWORD_HENVENDELSER
 import no.nav.sf.henvendelse.db.env_VALKEY_USERNAME_HENVENDELSER
 import org.redisson.Redisson
 import org.redisson.api.RedissonClient
+import java.io.File
 import kotlin.system.measureTimeMillis
 
 const val cacheName_HENVENDELSELISTE = "henvendelseliste"
@@ -45,20 +47,25 @@ object Valkey {
     }
 
     fun connectViaLettuce(): RedisCommands<String, String> {
-//        val staticCredentialsProvider = StaticCredentialsProvider(
-//            env(env_VALKEY_USERNAME_HENVENDELSER),
-//            env(env_VALKEY_USERNAME_HENVENDELSER).toCharArray()
-//        )
+        val staticCredentialsProvider = StaticCredentialsProvider(
+            env(env_VALKEY_USERNAME_HENVENDELSER),
+            env(env_VALKEY_USERNAME_HENVENDELSER).toCharArray()
+        )
 
         val redisURI = RedisURI.Builder.redis(env("VALKEY_HOST_HENVENDELSER"), env("VALKEY_PORT_HENVENDELSER").toInt())
             .withSsl(true)
-            .withAuthentication(env(env_VALKEY_USERNAME_HENVENDELSER), env(env_VALKEY_USERNAME_HENVENDELSER).toCharArray())
+            .withAuthentication(env(env_VALKEY_USERNAME_HENVENDELSER), env(env_VALKEY_PASSWORD_HENVENDELSER).toCharArray())
             .build()
+
+        // redisURI.credentialsProvider = staticCredentialsProvider
         // val redisURI = RedisURI.create(env(env_REDIS_URI_HENVENDELSER)).apply {
         //    this.credentialsProvider = staticCredentialsProvider
         // }
 
+        File("/tmp/uri").writeText(redisURI.toURI().toString())
+
         val client: RedisClient = RedisClient.create(redisURI)
+
         val connection: StatefulRedisConnection<String, String> = client.connect()
         return connection.sync()
     }
