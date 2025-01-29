@@ -5,13 +5,11 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.env
 import no.nav.sf.henvendelse.db.env_VALKEY_PASSWORD_HENVENDELSER
-import no.nav.sf.henvendelse.db.env_VALKEY_URI_HENVENDELSER
 import no.nav.sf.henvendelse.db.env_VALKEY_USERNAME_HENVENDELSER
 import org.redisson.Redisson
 import org.redisson.api.RMapCache
 import org.redisson.api.RedissonClient
 import org.redisson.config.Config
-import java.io.File
 import kotlin.system.measureTimeMillis
 
 const val cacheName_HENVENDELSELISTE = "henvendelseliste"
@@ -46,6 +44,7 @@ object Valkey {
     }
 
     fun connectToRedisson(): RedissonClient {
+        /*
         val config = Config()
 
         val uri = env(env_VALKEY_URI_HENVENDELSER) // Example: "valkeys://valkey-teamnks-henvendelser-nav-dev.k.aivencloud.com:26483"
@@ -65,6 +64,18 @@ object Valkey {
             // sslVerificationMode = SslVerificationMode.NONE // Disable strict hostname verification
             // sslProvider = SslProvider.JDK
         }
+
+         */
+        val config = Config()
+        config.useSingleServer().apply {
+            // Manually handle the connection string and SSL
+            address = "rediss://valkey-teamnks-henvendelser-nav-dev.k.aivencloud.com:26483"
+            username = env(env_VALKEY_USERNAME_HENVENDELSER)
+            password = env(env_VALKEY_PASSWORD_HENVENDELSER)
+            sslProvider = org.redisson.config.SslProvider.JDK
+            sslVerificationMode = org.redisson.config.SslVerificationMode.NONE // Optional, based on your server's SSL setup
+        }
+        return Redisson.create(config)
 
         return Redisson.create(config)
     }
