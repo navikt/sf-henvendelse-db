@@ -249,7 +249,7 @@
       },
       "parameters": [
         {
-          "name": "AKTOR_ID",
+          "name": "aktorId",
           "in": "query",
           "required": true,
           "schema": {
