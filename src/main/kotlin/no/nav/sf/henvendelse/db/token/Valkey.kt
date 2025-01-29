@@ -11,8 +11,7 @@ import org.redisson.Redisson
 import org.redisson.api.RMapCache
 import org.redisson.api.RedissonClient
 import org.redisson.config.Config
-import org.redisson.config.SslProvider
-import org.redisson.config.SslVerificationMode
+import java.io.File
 import kotlin.system.measureTimeMillis
 
 const val cacheName_HENVENDELSELISTE = "henvendelseliste"
@@ -28,6 +27,7 @@ object Valkey {
             true
         } else {
             val redissonClient = connectToRedisson()
+            log.info { "Past connection" }
             var response: Long
             val queryTime = measureTimeMillis {
                 val mapCache: RMapCache<String, String> = redissonClient.getMapCache(cacheName_HENVENDELSELISTE)
@@ -43,18 +43,22 @@ object Valkey {
     fun connectToRedisson(): RedissonClient {
         val config = Config()
 
-        log.info {
-            "Attempt connection to ${env(env_VALKEY_URI_HENVENDELSER)}, username ${env(env_VALKEY_USERNAME_HENVENDELSER)}, password length ${env(
-                env_VALKEY_PASSWORD_HENVENDELSER
-            ).length}"
-        }
+        val uri = env(env_VALKEY_URI_HENVENDELSER) // Example: "valkeys://valkey-teamnks-henvendelser-nav-dev.k.aivencloud.com:26483"
+        val username = env(env_VALKEY_USERNAME_HENVENDELSER)
+        val password = env(env_VALKEY_PASSWORD_HENVENDELSER)
+
+        log.info { "Attempt connection to $uri, username $username, password length ${password.length}" }
+
+        val modifiedUri = uri.replace("valkeys://", "valkeys://$username:$password@")
+
+        File("/tmp/modifiedURI").writeText(modifiedUri)
 
         config.useSingleServer().apply {
-            address = env(env_VALKEY_URI_HENVENDELSER)
-            username = env(env_VALKEY_USERNAME_HENVENDELSER)
-            password = env(env_VALKEY_PASSWORD_HENVENDELSER)
-            sslVerificationMode = SslVerificationMode.NONE // Disable strict hostname verification
-            sslProvider = SslProvider.OPENSSL
+            address = modifiedUri
+            // username = env(env_VALKEY_USERNAME_HENVENDELSER)
+            // password = env(env_VALKEY_PASSWORD_HENVENDELSER)
+            // sslVerificationMode = SslVerificationMode.NONE // Disable strict hostname verification
+            // sslProvider = SslProvider.JDK
         }
 
         return Redisson.create(config)
