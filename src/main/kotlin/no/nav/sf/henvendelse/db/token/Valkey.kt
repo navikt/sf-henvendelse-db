@@ -54,7 +54,7 @@ object Valkey {
             env(env_VALKEY_PASSWORD_HENVENDELSELISTE).toCharArray()
         )
 
-        val redisURI = RedisURI.Builder.redis(env(env(env_VALKEY_HOST_HENVENDELSELISTE)), env(env_VALKEY_PORT_HENVENDELSELISTE).toInt())
+        val redisURI = RedisURI.Builder.redis(env(env_VALKEY_HOST_HENVENDELSELISTE), env(env_VALKEY_PORT_HENVENDELSELISTE).toInt())
             .withSsl(true)
             .withAuthentication(env(env_VALKEY_USERNAME_HENVENDELSELISTE), env(env_VALKEY_PASSWORD_HENVENDELSELISTE).toCharArray())
             .build()
