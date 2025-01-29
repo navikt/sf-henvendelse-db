@@ -2,7 +2,6 @@ package no.nav.sf.henvendelse.db.token
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
-import io.lettuce.core.StaticCredentialsProvider
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
 import mu.KotlinLogging
@@ -27,7 +26,7 @@ object Valkey {
             true
         } else {
             try {
-                val redissonClient = connectViaRedisson()
+                val redissonClient = connectViaLettuce()
                 log.info { "Past connection" }
                 var response: Long
                 val queryTime = measureTimeMillis {
@@ -46,14 +45,18 @@ object Valkey {
     }
 
     fun connectViaLettuce(): RedisCommands<String, String> {
-        val staticCredentialsProvider = StaticCredentialsProvider(
-            env(env_VALKEY_USERNAME_HENVENDELSER),
-            env(env_VALKEY_USERNAME_HENVENDELSER).toCharArray()
-        )
+//        val staticCredentialsProvider = StaticCredentialsProvider(
+//            env(env_VALKEY_USERNAME_HENVENDELSER),
+//            env(env_VALKEY_USERNAME_HENVENDELSER).toCharArray()
+//        )
 
-        val redisURI = RedisURI.create("rediss://valkey-teamnks-henvendelser-nav-dev.k.aivencloud.com:26483").apply {
-            this.credentialsProvider = staticCredentialsProvider
-        }
+        val redisURI = RedisURI.Builder.redis(env("VALKEY_HOST_HENVENDELSER"), env("VALKEY_PORT_HENVENDELSER").toInt())
+            .withSsl(true)
+            .withAuthentication(env(env_VALKEY_USERNAME_HENVENDELSER), env(env_VALKEY_USERNAME_HENVENDELSER).toCharArray())
+            .build()
+        // val redisURI = RedisURI.create(env(env_REDIS_URI_HENVENDELSER)).apply {
+        //    this.credentialsProvider = staticCredentialsProvider
+        // }
 
         val client: RedisClient = RedisClient.create(redisURI)
         val connection: StatefulRedisConnection<String, String> = client.connect()
