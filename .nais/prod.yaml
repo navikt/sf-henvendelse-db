@@ -61,6 +61,8 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: sf-henvendelse-api-proxy
+          cluster: prod-fss
         - application: salesforce
           namespace: teamcrm
           cluster: prod-external

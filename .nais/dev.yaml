@@ -58,6 +58,9 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: sf-henvendelse-api-proxy
+          namespace: teamnks
+          cluster: dev-fss
         - application: itestapp
           namespace: teamcrm
         - application: salesforce
