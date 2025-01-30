@@ -46,7 +46,7 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.10'
 
-    implementation 'io.lettuce:lettuce-core:6.4.0.RELEASE'
+    implementation 'io.lettuce:lettuce-core:6.5.3.RELEASE'
 
     implementation "org.http4k:http4k-server-apache:3.251.0"
 
