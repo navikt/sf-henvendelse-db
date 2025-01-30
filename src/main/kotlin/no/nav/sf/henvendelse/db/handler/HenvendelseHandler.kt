@@ -8,9 +8,11 @@ import com.google.gson.JsonParser
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.token.TokenValidator
+import no.nav.sf.henvendelse.db.token.Valkey
 import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status.Companion.BAD_REQUEST
+import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
 import java.io.File
 
@@ -151,15 +153,38 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
     val loggedCacheRequestsLimit = 20
 
     val cacheHenvendelselistePost: HttpHandler = {
-        loggedCacheRequests++
-        if (loggedCacheRequests <= loggedCacheRequestsLimit) {
-            File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}").writeText(it.toMessage())
+        val aktorIdParam = it.query(AKTOR_ID)
+        if (aktorIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else {
+            loggedCacheRequests++
+            if (loggedCacheRequests <= loggedCacheRequestsLimit) {
+                File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}-$aktorIdParam").writeText(it.toMessage())
+            }
+            Valkey.put(aktorIdParam, it.bodyString())
+            Response(OK)
         }
-        Response(OK)
     }
 
+    var loggedCacheGetRequests = 0
+    val loggedCacheGetRequestsLimit = 20
+
     val cacheHenvendelselisteGet: HttpHandler = {
-        Response(OK)
+        val aktorIdParam = it.query(AKTOR_ID)
+        if (aktorIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else {
+            val result = Valkey.get(aktorIdParam)
+            loggedCacheGetRequests++
+            if (loggedCacheGetRequests <= loggedCacheGetRequestsLimit) {
+                File("/tmp/cache-get-response-${String.format("%03d", loggedCacheGetRequests)}-$aktorIdParam").writeText(result ?: "null")
+            }
+            if (result == null) {
+                Response(NO_CONTENT)
+            } else {
+                Response(OK).body(result)
+            }
+        }
     }
 
     val cacheHenvendelselisteDelete: HttpHandler = {
@@ -169,8 +194,8 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         } else {
             val aktorIds = aktorIdParam.split(",")
             log.info { "Received delete cache entry call for aktorIds ${aktorIds.joinToString(" ")}" }
-            aktorIds.forEach {
-                // Clear by cache key
+            aktorIds.forEach { aktorId ->
+                Valkey.clearCache(aktorId)
             }
             Response(OK)
         }

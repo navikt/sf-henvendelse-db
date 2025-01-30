@@ -177,18 +177,7 @@
           "500": {
             "description": "Internal service error"
           }
-        },
-        "parameters": [
-          {
-            "name": "AKTOR_ID",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Id til aktøren henvendelsene gjelder"
-          }
-        ]
+        }
       },
       "post": {
         "tags": [

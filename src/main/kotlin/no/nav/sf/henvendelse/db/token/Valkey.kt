@@ -15,6 +15,10 @@ import kotlin.system.measureTimeMillis
 
 object Valkey {
 
+    private const val useTTL: Boolean = true
+
+    private const val TTLInSeconds: Long = 60 * 60 * 48 // 48h
+
     private val log = KotlinLogging.logger { }
 
     var initialCheckPassed = false
@@ -52,6 +56,25 @@ object Valkey {
 
         val connection: StatefulRedisConnection<String, String> = client.connect()
         return connection.sync()
+    }
+
+    fun get(key: String): String? = commands.get(key)
+
+    fun put(key: String, value: String?) {
+        if (useTTL) {
+            commands.setex(key, TTLInSeconds, value)
+        } else {
+            commands.set(key, value)
+        }
+    }
+
+    fun clearCache(key: String) {
+        val deletedCount = commands.del(key)
+        if (deletedCount > 0) {
+            log.info { "Successfully deleted key: $key" }
+        } else {
+            log.warn { "Key not found: $key" }
+        }
     }
 
     val commands = connect()
