@@ -150,7 +150,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
     }
 
     var loggedCacheRequests = 0
-    val loggedCacheRequestsLimit = 20
+    val loggedCacheRequestsLimit = 100
 
     val cacheHenvendelselistePost: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
@@ -167,7 +167,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
     }
 
     var loggedCacheGetRequests = 0
-    val loggedCacheGetRequestsLimit = 20
+    val loggedCacheGetRequestsLimit = 100
 
     val cacheHenvendelselisteGet: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
@@ -177,7 +177,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             val result = Valkey.get(aktorIdParam)
             loggedCacheGetRequests++
             if (loggedCacheGetRequests <= loggedCacheGetRequestsLimit) {
-                File("/tmp/cache-get-response-${String.format("%03d", loggedCacheGetRequests)}-$aktorIdParam").writeText(result ?: "null")
+                File("/tmp/cache-get-response-${String.format("%03d", loggedCacheGetRequests)}-$aktorIdParam").writeText(result ?: "NO CONTENT")
             }
             if (result == null) {
                 Response(NO_CONTENT)
