@@ -157,6 +157,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
+            log.info { "Cache PUT on aktorId $aktorIdParam" }
             loggedCacheRequests++
             if (loggedCacheRequests <= loggedCacheRequestsLimit) {
                 File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}-$aktorIdParam").writeText(it.toMessage())
@@ -174,6 +175,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
+            log.info { "Cache GET on aktorId $aktorIdParam" }
             val result = Valkey.get(aktorIdParam)
             loggedCacheGetRequests++
             if (loggedCacheGetRequests <= loggedCacheGetRequestsLimit) {
@@ -192,8 +194,8 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
+            log.info { "Cache DELETE on aktorIds $aktorIdParam" }
             val aktorIds = aktorIdParam.split(",")
-            log.info { "Received delete cache entry call for aktorIds ${aktorIds.joinToString(" ")}" }
             aktorIds.forEach { aktorId ->
                 Valkey.clearCache(aktorId)
             }
