@@ -20,16 +20,14 @@ object Metrics {
 
     val cacheSize: Gauge = registerGauge("cache_size")
 
+    val cacheDelete = registerLabelCounter("cache_delete", "source")
+
     fun registerGauge(name: String): Gauge {
         return Gauge.build().name(name).help(name).register()
     }
 
-    fun registerLabelGauge(name: String, label: String): Gauge {
-        return Gauge.build().name(name).help(name).labelNames(label).register()
-    }
-
-    fun registerLabelCounter(name: String, label: String): Counter {
-        return Counter.build().name(name).help(name).labelNames(label).register()
+    fun registerLabelCounter(name: String, vararg labels: String): Counter {
+        return Counter.build().name(name).help(name).labelNames(*labels).register()
     }
 
     val metricsHandler: HttpHandler = {

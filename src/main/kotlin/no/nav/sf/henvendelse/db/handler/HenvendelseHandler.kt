@@ -6,6 +6,7 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import mu.KotlinLogging
+import no.nav.sf.henvendelse.db.Metrics
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.token.TokenValidator
 import no.nav.sf.henvendelse.db.token.Valkey
@@ -15,6 +16,7 @@ import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
 import java.io.File
+import java.lang.Exception
 
 const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
@@ -198,6 +200,17 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             val aktorIds = aktorIdParam.split(",")
             aktorIds.forEach { aktorId ->
                 Valkey.clearCache(aktorId)
+            }
+            try {
+                if (tokenValidator.hasTokenFromSalesforce(it)) {
+                    Metrics.cacheDelete.labels("salesforce").inc()
+                    log.info { "Cache DELETE from SF" }
+                } else {
+                    Metrics.cacheDelete.labels("proxy").inc()
+                    log.info { "Cache DELETE from proxy" }
+                }
+            } catch (e: Exception) {
+                log.error { "Failed to register cache delete metric: " + e.stackTraceToString() }
             }
             Response(OK)
         }

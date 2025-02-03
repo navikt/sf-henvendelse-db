@@ -77,5 +77,9 @@ object Valkey {
         }
     }
 
+    fun flushDb() { // Clear the whole cache
+        commands.flushdb()
+    }
+
     val commands = connect()
 }
