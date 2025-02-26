@@ -59,8 +59,9 @@ spec:
     inbound:
       rules:
         - application: sf-henvendelse-api-proxy
-          namespace: teamnks
           cluster: dev-fss
+        - application: sf-henvendelse-api-proxy
+          cluster: dev-gcp
         - application: itestapp
           namespace: teamcrm
         - application: salesforce

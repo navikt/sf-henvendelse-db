@@ -73,7 +73,7 @@ object Valkey {
         if (deletedCount > 0) {
             log.info { "Successfully deleted key: $key" }
         } else {
-            log.warn { "Key not found: $key" }
+            log.warn { "Delete - key not found: $key" }
         }
     }
 
