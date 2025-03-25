@@ -1,0 +1,11 @@
+apiVersion: aiven.io/v1alpha1
+kind: Valkey
+metadata:
+  labels:
+    app: sf-henvendelse-db
+    team: teamnks
+  name: valkey-teamnks-henvendelseliste
+  namespace: teamnks
+spec:
+  plan: startup-4
+  project: nav-prod
