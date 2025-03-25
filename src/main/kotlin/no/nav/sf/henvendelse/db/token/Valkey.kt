@@ -31,6 +31,8 @@ object Valkey {
                 var response: Long
                 val queryTime = measureTimeMillis {
                     commands.get("dummy")
+                    val info = commands.info("memory")
+                    File("/tmp/infomem").writeText(info)
                 }
                 log.info { "Initial check query time $queryTime ms" }
                 if (queryTime < 100) {
