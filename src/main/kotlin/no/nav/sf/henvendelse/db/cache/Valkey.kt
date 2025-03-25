@@ -1,4 +1,4 @@
-package no.nav.sf.henvendelse.db.token
+package no.nav.sf.henvendelse.db.cache
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI

@@ -7,7 +7,9 @@ import no.nav.sf.henvendelse.db.config_CONTEXT
 import no.nav.sf.henvendelse.db.env
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -56,11 +58,26 @@ class PostgresDatabase {
                 val dropStatement =
                     TransactionManager.current().connection.prepareStatement("DROP TABLE henvendelser", false)
                 dropStatement.executeUpdate()
-                log.info { "Drop performed" }
+                log.info { "Drop performed of Henvendelser" }
             }
 
             log.info { "Creating table Henvendelser" }
             SchemaUtils.create(Henvendelser)
+        }
+    }
+
+    fun createCache(dropFirst: Boolean = false) {
+        transaction {
+            if (dropFirst) {
+                log.info { "Dropping table Henvendelseliste" }
+                val dropStatement =
+                    TransactionManager.current().connection.prepareStatement("DROP TABLE henvendelseliste", false)
+                dropStatement.executeUpdate()
+                log.info { "Drop performed Henvendelseliste" }
+            }
+
+            log.info { "Creating table Henvendelseliste" }
+            SchemaUtils.create(Henvendelseliste)
         }
     }
 
@@ -100,5 +117,37 @@ class PostgresDatabase {
 
     fun count(): Long = transaction {
         Henvendelser.selectAll().count()
+    }
+
+    fun cacheGet(aktorId: String): String? = transaction {
+        Henvendelseliste
+            .selectAll().where { Henvendelseliste.aktorId eq aktorId }
+            .filter { it[Henvendelseliste.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
+            .map { it[Henvendelseliste.json].toString() }
+            .firstOrNull()
+    }
+
+    fun cachePut(aktorId: String, value: String, ttlInSeconds: Int?): Boolean {
+        try {
+            val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
+
+            transaction {
+                Henvendelseliste.upsert(
+                    keys = arrayOf(Henvendelseliste.aktorId) // Perform update if there is a conflict here
+                ) {
+                    it[Henvendelseliste.aktorId] = aktorId
+                    it[Henvendelseliste.json] = value
+                    it[Henvendelseliste.expiresAt] = expiresAt
+                }
+            }
+            return true
+        } catch (e: Exception) {
+            log.error { e.stackTraceToString() }
+            return false
+        }
+    }
+
+    fun deleteCache(aktorId: String) = transaction {
+        Henvendelseliste.deleteWhere { Henvendelseliste.aktorId eq aktorId }
     }
 }

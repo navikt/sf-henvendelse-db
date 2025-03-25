@@ -1,5 +1,7 @@
 package no.nav.sf.henvendelse.db.database
 
+import no.nav.sf.henvendelse.db.database.Henvendelser.index
+import no.nav.sf.henvendelse.db.database.Henvendelser.uniqueIndex
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
@@ -20,6 +22,14 @@ object Henvendelser : Table() {
     // Record metadata
     val lastModified = datetime("last_modified").index()
     val lastModifiedBySF = bool("last_modified_by_sf")
+}
+
+object Henvendelseliste : Table() {
+    val aktorId = varchar("aktorid", 20).uniqueIndex()
+    val json = varchar("json", MAX_LIMIT_VARCHAR)
+
+    // Record metadata
+    val expiresAt = datetime("expires_at").nullable().index()
 }
 
 data class HenvendelseRecord(

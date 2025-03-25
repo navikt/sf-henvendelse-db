@@ -7,11 +7,12 @@ import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.Metrics
+import no.nav.sf.henvendelse.db.cache.Valkey
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.token.TokenValidator
-import no.nav.sf.henvendelse.db.token.Valkey
 import org.http4k.core.HttpHandler
 import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
@@ -23,6 +24,8 @@ const val AKTOR_ID = "aktorId"
 const val FNR = "fnr"
 
 class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValidator, gson: Gson) {
+    private val TTLInSecondsPostgres: Int = 60 * 60 * 48 // 48h
+
     private val log = KotlinLogging.logger { }
 
     val upsertHenvendelseHandler: HttpHandler = {
@@ -212,6 +215,74 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             } catch (e: Exception) {
                 log.error { "Failed to register cache delete metric: " + e.stackTraceToString() }
             }
+            Response(OK)
+        }
+    }
+
+    /**
+     * POSTGRES variants
+     */
+    val cachePostgresHenvendelselistePost: HttpHandler = {
+        val aktorIdParam = it.query(AKTOR_ID)
+        if (aktorIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else {
+            log.info { "Postgres Cache PUT on aktorId $aktorIdParam" }
+            // loggedCacheRequests++
+            // if (loggedCacheRequests <= loggedCacheRequestsLimit) {
+            //    File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}-$aktorIdParam").writeText(it.toMessage())
+            // }
+            val success = database.cachePut(aktorIdParam, it.bodyString(), TTLInSecondsPostgres)
+            if (success) {
+                Response(OK)
+            } else {
+                Response(Status.INTERNAL_SERVER_ERROR).body("Failed to perform postgres put")
+            }
+        }
+    }
+
+    val cachePostgresHenvendelselisteGet: HttpHandler = {
+        val aktorIdParam = it.query(AKTOR_ID)
+        if (aktorIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else {
+            log.info { "Postgres Cache GET on aktorId $aktorIdParam" }
+            val result = database.cacheGet(aktorIdParam)
+//            loggedCacheGetRequests++
+//            if (loggedCacheGetRequests <= loggedCacheGetRequestsLimit) {
+//                File("/tmp/cache-get-response-${String.format("%03d", loggedCacheGetRequests)}-$aktorIdParam").writeText(result ?: "NO CONTENT")
+//            }
+            if (result == null) {
+                Response(NO_CONTENT)
+            } else {
+                Response(OK).body(result)
+            }
+        }
+    }
+
+    val cachePostgresHenvendelselisteDelete: HttpHandler = {
+        val aktorIdParam = it.query(AKTOR_ID)
+        if (aktorIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else {
+            log.info { "Postgres Cache DELETE on aktorIds $aktorIdParam" }
+            val aktorIds = aktorIdParam.split(",")
+            aktorIds.forEach { aktorId ->
+                database.deleteCache(aktorId)
+            }
+            /*
+            try {
+                if (tokenValidator.hasTokenFromSalesforce(it)) {
+                    Metrics.cacheDelete.labels("salesforce").inc()
+                    log.info { "Cache DELETE from SF" }
+                } else {
+                    Metrics.cacheDelete.labels("proxy").inc()
+                    log.info { "Cache DELETE from proxy" }
+                }
+            } catch (e: Exception) {
+                log.error { "Failed to register cache delete metric: " + e.stackTraceToString() }
+            }
+             */
             Response(OK)
         }
     }

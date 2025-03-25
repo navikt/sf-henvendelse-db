@@ -2,11 +2,11 @@ package no.nav.sf.henvendelse.db
 
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.api.proxy.token.DefaultTokenValidator
+import no.nav.sf.henvendelse.db.cache.Valkey
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.handler.GuiHandler
 import no.nav.sf.henvendelse.db.handler.HenvendelseHandler
 import no.nav.sf.henvendelse.db.token.TokenValidator
-import no.nav.sf.henvendelse.db.token.Valkey
 import org.http4k.core.HttpHandler
 import org.http4k.core.Method
 import org.http4k.core.Response
@@ -33,6 +33,7 @@ class Application(
         log.info { "Starting..." }
         apiServer(8080).start()
         // database.create(false)
+        database.createCache()
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
@@ -50,7 +51,10 @@ class Application(
         "/henvendelser" authbind Method.GET to henvendelse.fetchHenvendelserByAktorIdHandler,
         "/cache/henvendelseliste" authbind Method.POST to henvendelse.cacheHenvendelselistePost,
         "/cache/henvendelseliste" authbind Method.GET to henvendelse.cacheHenvendelselisteGet,
-        "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete
+        "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete,
+        "/cache/postgreshenvendelseliste" authbind Method.POST to henvendelse.cachePostgresHenvendelselistePost,
+        "/cache/postgreshenvendelseliste" authbind Method.GET to henvendelse.cachePostgresHenvendelselisteGet,
+        "/cache/postgreshenvendelseliste" authbind Method.DELETE to henvendelse.cachePostgresHenvendelselisteDelete
     )
 
     /**
