@@ -33,7 +33,7 @@ class Application(
         log.info { "Starting..." }
         apiServer(8080).start()
         // database.create(false)
-        database.createCache()
+        // database.createCache()
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
