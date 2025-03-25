@@ -31,8 +31,10 @@ object Valkey {
                 var response: Long
                 val queryTime = measureTimeMillis {
                     commands.get("dummy")
-                    val info = commands.info("memory")
-                    File("/tmp/infomem").writeText(info)
+                    for (i in 0..15) { // Default Redis has 16 databases (0-15)
+                        commands.select(i)
+                        File("/tmp/dbsize").appendText("DB " + i + " has " + commands.dbsize() + " keys\n")
+                    }
                 }
                 log.info { "Initial check query time $queryTime ms" }
                 if (queryTime < 100) {
