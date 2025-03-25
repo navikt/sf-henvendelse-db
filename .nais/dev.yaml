@@ -20,8 +20,6 @@ spec:
   valkey:
     - instance: henvendelseliste # Determines env variable names
       access: readwrite
-      userConfig:
-        valkey_maxmemory_policy: "allkeys-lru"
   prometheus:
     enabled: true
     path: /internal/metrics
