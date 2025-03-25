@@ -9,3 +9,5 @@ metadata:
 spec:
   plan: startup-4
   project: nav-dev
+  userConfig:
+    redis_maxmemory_policy: "allkeys-lru"

@@ -9,3 +9,5 @@ metadata:
 spec:
   plan: startup-4
   project: nav-prod
+  userConfig:
+    valkey_maxmemory_policy: "allkeys-lru"
