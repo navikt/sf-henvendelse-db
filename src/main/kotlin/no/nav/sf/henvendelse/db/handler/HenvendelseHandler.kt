@@ -286,4 +286,10 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             Response(OK)
         }
     }
+
+    val cachePostgresCount: HttpHandler = {
+        val result = database.cacheCountRows()
+        Metrics.cacheSize.set(result.toDouble())
+        Response(OK).body("$result")
+    }
 }

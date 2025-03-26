@@ -150,4 +150,8 @@ class PostgresDatabase {
     fun deleteCache(aktorId: String) = transaction {
         Henvendelseliste.deleteWhere { Henvendelseliste.aktorId eq aktorId }
     }
+
+    fun cacheCountRows(): Long = transaction {
+        Henvendelseliste.selectAll().count()
+    }
 }
