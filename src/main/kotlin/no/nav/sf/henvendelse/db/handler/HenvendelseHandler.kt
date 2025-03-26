@@ -290,6 +290,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
     val cachePostgresCount: HttpHandler = {
         val result = database.cacheCountRows()
         Metrics.cacheSize.set(result.toDouble())
+        log.info { "Cache size check result $result" }
         Response(OK).body("$result")
     }
 }
