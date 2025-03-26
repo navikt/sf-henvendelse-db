@@ -11,7 +11,7 @@ spec:
   accessPolicy:
     outbound:
       rules:
-        - application: sf-eventlog
+        - application: sf-henvendelse-db
   command:
     - curl
     - http://sf-henvendelse-db/internal/cache/count
