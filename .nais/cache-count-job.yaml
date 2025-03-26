@@ -1,0 +1,18 @@
+apiVersion: nais.io/v1
+kind: Naisjob
+metadata:
+  name: cache-count-job
+  namespace: teamnks
+  labels:
+    team: teamnks
+spec:
+  schedule: "0 * * * *" # Runs at the start of every hour
+  image: "{{ image }}" # cgr.dev/chainguard/curl:latest
+  accessPolicy:
+    outbound:
+      rules:
+        - application: sf-eventlog
+  command:
+    - curl
+    - http://sf-henvendelse-db/internal/cache/count
+  restartPolicy: Never

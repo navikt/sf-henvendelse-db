@@ -55,7 +55,7 @@ class Application(
         "/cache/postgreshenvendelseliste" authbind Method.POST to henvendelse.cachePostgresHenvendelselistePost,
         "/cache/postgreshenvendelseliste" authbind Method.GET to henvendelse.cachePostgresHenvendelselisteGet,
         "/cache/postgreshenvendelseliste" authbind Method.DELETE to henvendelse.cachePostgresHenvendelselisteDelete,
-        "/cache/count" bind Method.GET to henvendelse.cachePostgresCount
+        "/internal/cache/count" bind Method.GET to henvendelse.cachePostgresCount
     )
 
     /**
