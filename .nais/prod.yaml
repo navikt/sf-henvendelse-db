@@ -68,6 +68,7 @@ spec:
         - application: salesforce
           namespace: teamcrm
           cluster: prod-external
+        - application: cache-count-job
   env:
     - name: VIEW_PAGE_SIZE
       value: "50"
