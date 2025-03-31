@@ -7,7 +7,6 @@ import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.Metrics
-import no.nav.sf.henvendelse.db.cache.Valkey
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.token.TokenValidator
 import org.http4k.core.HttpHandler
@@ -16,8 +15,6 @@ import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
-import java.io.File
-import java.lang.Exception
 
 const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
@@ -154,75 +151,10 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
-    var loggedCacheRequests = 0
-    val loggedCacheRequestsLimit = 100
-
-    val cacheHenvendelselistePost: HttpHandler = {
-        val aktorIdParam = it.query(AKTOR_ID)
-        if (aktorIdParam == null) {
-            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
-        } else {
-            log.info { "Cache PUT on aktorId $aktorIdParam" }
-            loggedCacheRequests++
-            if (loggedCacheRequests <= loggedCacheRequestsLimit) {
-                File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}-$aktorIdParam").writeText(it.toMessage())
-            }
-            Valkey.put(aktorIdParam, it.bodyString())
-            Response(OK)
-        }
-    }
-
-    var loggedCacheGetRequests = 0
-    val loggedCacheGetRequestsLimit = 100
-
-    val cacheHenvendelselisteGet: HttpHandler = {
-        val aktorIdParam = it.query(AKTOR_ID)
-        if (aktorIdParam == null) {
-            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
-        } else {
-            log.info { "Cache GET on aktorId $aktorIdParam" }
-            val result = Valkey.get(aktorIdParam)
-            loggedCacheGetRequests++
-            if (loggedCacheGetRequests <= loggedCacheGetRequestsLimit) {
-                File("/tmp/cache-get-response-${String.format("%03d", loggedCacheGetRequests)}-$aktorIdParam").writeText(result ?: "NO CONTENT")
-            }
-            if (result == null) {
-                Response(NO_CONTENT)
-            } else {
-                Response(OK).body(result)
-            }
-        }
-    }
-
-    val cacheHenvendelselisteDelete: HttpHandler = {
-        val aktorIdParam = it.query(AKTOR_ID)
-        if (aktorIdParam == null) {
-            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
-        } else {
-            log.info { "Cache DELETE on aktorIds $aktorIdParam" }
-            val aktorIds = aktorIdParam.split(",")
-            aktorIds.forEach { aktorId ->
-                Valkey.clearCache(aktorId)
-            }
-            try {
-                if (tokenValidator.hasTokenFromSalesforce(it)) {
-                    Metrics.cacheDelete.labels("salesforce").inc()
-                    log.info { "Cache DELETE from SF" }
-                } else {
-                    Metrics.cacheDelete.labels("proxy").inc()
-                    log.info { "Cache DELETE from proxy" }
-                }
-            } catch (e: Exception) {
-                log.error { "Failed to register cache delete metric: " + e.stackTraceToString() }
-            }
-            Response(OK)
-        }
-    }
-
     /**
      * POSTGRES variants
      */
-    val cachePostgresHenvendelselistePost: HttpHandler = {
+    val cacheHenvendelselistePost: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
@@ -241,7 +173,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
-    val cachePostgresHenvendelselisteGet: HttpHandler = {
+    val cacheHenvendelselisteGet: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
@@ -260,7 +192,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
-    val cachePostgresHenvendelselisteDelete: HttpHandler = {
+    val cacheHenvendelselisteDelete: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")

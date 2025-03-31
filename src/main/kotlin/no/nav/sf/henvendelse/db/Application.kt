@@ -49,12 +49,12 @@ class Application(
         "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
         "/henvendelse" authbind Method.GET to henvendelse.fetchHenvendelseByKjedeIdHandler,
         "/henvendelser" authbind Method.GET to henvendelse.fetchHenvendelserByAktorIdHandler,
-        "/cache/henvendelseliste" authbind Method.POST to henvendelse.cachePostgresHenvendelselistePost,
-        "/cache/henvendelseliste" authbind Method.GET to henvendelse.cachePostgresHenvendelselisteGet,
-        "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cachePostgresHenvendelselisteDelete,
-        "/cache/postgreshenvendelseliste" authbind Method.POST to henvendelse.cachePostgresHenvendelselistePost,
-        "/cache/postgreshenvendelseliste" authbind Method.GET to henvendelse.cachePostgresHenvendelselisteGet,
-        "/cache/postgreshenvendelseliste" authbind Method.DELETE to henvendelse.cachePostgresHenvendelselisteDelete,
+        "/cache/henvendelseliste" authbind Method.POST to henvendelse.cacheHenvendelselistePost,
+        "/cache/henvendelseliste" authbind Method.GET to henvendelse.cacheHenvendelselisteGet,
+        "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete,
+        "/cache/postgreshenvendelseliste" authbind Method.POST to henvendelse.cacheHenvendelselistePost,
+        "/cache/postgreshenvendelseliste" authbind Method.GET to henvendelse.cacheHenvendelselisteGet,
+        "/cache/postgreshenvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete,
         "/internal/cache/count" bind Method.GET to henvendelse.cachePostgresCount
     )
 
