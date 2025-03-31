@@ -50,7 +50,10 @@ class PostgresDatabase {
         connectionTimeout = 250
         idleTimeout = 10000
         isAutoCommit = false
-        transactionIsolation = "TRANSACTION_REPEATABLE_READ" // Isolation level that ensure the same snapshot of db during one transaction
+        transactionIsolation = "TRANSACTION_READ_COMMITTED"
+        // This sets the transaction isolation level to READ COMMITTED, ensuring that each query sees only committed data.
+        // It prevents dirty reads while allowing non-repeatable reads and phantom reads, reducing contention compared to SERIALIZABLE.
+        // This is useful for avoiding serialization conflicts in high-concurrency delete operations.
     }
 
     fun create(dropFirst: Boolean = false) {
