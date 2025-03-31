@@ -223,6 +223,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         val result = database.cacheCountRows()
         Metrics.cacheSize.set(result.toDouble())
         log.info { "Cache size check result $result" }
-        Response(OK).body("$result")
+        val deleted = database.deleteExpiredRows()
+        Response(OK).body("$result, deleted $deleted")
     }
 }

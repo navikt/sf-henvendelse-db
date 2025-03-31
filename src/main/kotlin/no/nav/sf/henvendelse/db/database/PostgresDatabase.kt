@@ -8,6 +8,7 @@ import no.nav.sf.henvendelse.db.env
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.andWhere
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
@@ -150,6 +151,12 @@ class PostgresDatabase {
 
     fun deleteCache(aktorId: String) = transaction {
         Henvendelseliste.deleteWhere { Henvendelseliste.aktorId eq aktorId }
+    }
+
+    fun deleteExpiredRows(): Int = transaction {
+        Henvendelseliste.deleteWhere {
+            Henvendelseliste.expiresAt lessEq LocalDateTime.now()
+        }
     }
 
     fun cacheCountRows(): Long = transaction {
