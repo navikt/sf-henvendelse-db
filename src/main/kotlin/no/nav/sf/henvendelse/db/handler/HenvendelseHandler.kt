@@ -21,7 +21,7 @@ const val AKTOR_ID = "aktorId"
 const val FNR = "fnr"
 
 class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValidator, gson: Gson) {
-    private val TTLInSecondsPostgres: Int = 60 * 60 * 48 // 48h
+    private val TTLInSecondsPostgres: Int = 60 * 60 * 96 // 96h
 
     private val log = KotlinLogging.logger { }
 
