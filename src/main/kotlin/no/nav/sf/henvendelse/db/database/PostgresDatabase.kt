@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.upsert
 import java.time.LocalDateTime
+import kotlin.system.measureTimeMillis
 
 const val NAIS_DB_PREFIX = "NAIS_DATABASE_SF_HENVENDELSE_DB_SF_HENVENDELSE_"
 
@@ -153,5 +154,27 @@ class PostgresDatabase {
 
     fun cacheCountRows(): Long = transaction {
         Henvendelseliste.selectAll().count()
+    }
+
+    var initialCheckPassed = false
+
+    fun cacheReady(): Boolean {
+        return if (initialCheckPassed) {
+            true
+        } else {
+            try {
+                val queryTime = measureTimeMillis {
+                    cacheGet("dummy")
+                }
+                log.info { "Initial cache check query time $queryTime ms" }
+                if (queryTime < 100) {
+                    initialCheckPassed = true
+                }
+                false
+            } catch (e: java.lang.Exception) {
+                log.error { e.printStackTrace() }
+                false
+            }
+        }
     }
 }

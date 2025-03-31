@@ -2,7 +2,6 @@ package no.nav.sf.henvendelse.db
 
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.api.proxy.token.DefaultTokenValidator
-import no.nav.sf.henvendelse.db.cache.Valkey
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.handler.GuiHandler
 import no.nav.sf.henvendelse.db.handler.HenvendelseHandler
@@ -81,7 +80,7 @@ class Application(
     }
 
     private val isReadyHttpHandler: HttpHandler = {
-        if (Valkey.isReady()) {
+        if (database.cacheReady()) {
             Response(Status.OK)
         } else {
             Response(Status.SERVICE_UNAVAILABLE)
