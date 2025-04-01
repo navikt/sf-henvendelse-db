@@ -226,4 +226,9 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         val deleted = database.deleteExpiredRows()
         Response(OK).body("$result, deleted $deleted")
     }
+
+    val cachePostgresClear: HttpHandler = {
+        val deleted = database.deleteAllRows()
+        Response(OK).body("Deleted $deleted")
+    }
 }

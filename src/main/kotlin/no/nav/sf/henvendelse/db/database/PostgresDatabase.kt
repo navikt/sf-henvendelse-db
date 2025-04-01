@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -156,7 +157,17 @@ class PostgresDatabase {
         Henvendelseliste.deleteWhere { Henvendelseliste.aktorId eq aktorId }
     }
 
+    fun deleteAllRows(): Int = transaction {
+        Henvendelseliste.deleteAll()
+    }
+
     fun deleteExpiredRows(): Int = transaction {
+        Henvendelseliste.deleteWhere {
+            Henvendelseliste.expiresAt lessEq LocalDateTime.now()
+        }
+    }
+
+    fun clear(): Int = transaction {
         Henvendelseliste.deleteWhere {
             Henvendelseliste.expiresAt lessEq LocalDateTime.now()
         }
