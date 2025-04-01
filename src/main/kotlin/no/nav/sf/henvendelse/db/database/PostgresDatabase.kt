@@ -182,12 +182,6 @@ class PostgresDatabase {
         }
     }
 
-    fun clear(): Int = transaction {
-        Henvendelseliste.deleteWhere {
-            Henvendelseliste.expiresAt lessEq LocalDateTime.now()
-        }
-    }
-
     fun cacheCountRows(): Long = transaction {
         Henvendelseliste.selectAll().count()
     }
@@ -211,6 +205,43 @@ class PostgresDatabase {
                 log.error { e.printStackTrace() }
                 false
             }
+        }
+    }
+
+    fun kjedeToAktorIdPut(kjedeId: String, aktorId: String, ttlInSeconds: Int?): Boolean {
+        try {
+            val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
+
+            transaction {
+                Henvendelseliste.upsert(
+                    keys = arrayOf(KjedeToAktor.kjedeId) // Perform update if there is a conflict here
+                ) {
+                    it[KjedeToAktor.kjedeId] = kjedeId
+                    it[KjedeToAktor.aktorId] = aktorId
+                }
+            }
+            return true
+        } catch (e: Exception) {
+            log.error { e.stackTraceToString() }
+            return false
+        }
+    }
+
+    fun kjedeToAktorIdGet(kjedeId: String): String? = transaction {
+        Henvendelseliste
+            .selectAll().where { KjedeToAktor.kjedeId eq kjedeId }
+            .filter { it[KjedeToAktor.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
+            .map { it[KjedeToAktor.aktorId].toString() }
+            .firstOrNull()
+    }
+
+    fun kjedeToAktorIdDeleteAllRows(): Int = transaction {
+        KjedeToAktor.deleteAll()
+    }
+
+    fun kjedeToAktorIdDeleteExpiredRows(): Int = transaction {
+        KjedeToAktor.deleteWhere {
+            KjedeToAktor.expiresAt lessEq LocalDateTime.now()
         }
     }
 }

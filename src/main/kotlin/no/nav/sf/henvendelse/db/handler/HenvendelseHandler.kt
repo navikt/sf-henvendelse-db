@@ -2,9 +2,12 @@ package no.nav.sf.henvendelse.db.handler
 
 import com.google.gson.Gson
 import com.google.gson.JsonArray
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.Metrics
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
@@ -15,6 +18,7 @@ import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
+import java.io.File
 
 const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
@@ -166,11 +170,42 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             // }
             val success = database.cachePut(aktorIdParam, it.bodyString(), TTLInSecondsPostgres)
             if (success) {
+                GlobalScope.launch {
+                    updateKjedeToAktorAssociations(it.bodyString())
+                }
                 Response(OK)
             } else {
                 Response(Status.INTERNAL_SERVER_ERROR).body("Failed to perform postgres put")
             }
         }
+    }
+
+    fun updateKjedeToAktorAssociations(json: String) {
+        val result = findKjedeToAktorAssociations(json)
+        File("/tmp/latestAssList").writeText(result.toString())
+    }
+
+    fun findKjedeToAktorAssociations(json: String): Set<Pair<String, String>> {
+        val jsonElement = JsonParser.parseString(json)
+        val associations = mutableSetOf<Pair<String, String>>()
+
+        fun findAssociations(element: JsonElement) {
+            when {
+                element.isJsonObject -> {
+                    val obj = element.asJsonObject
+                    if (obj.has("kjedeId") && obj.has("aktorId")) {
+                        val kjedeId = obj["kjedeId"].asString
+                        val aktorId = obj["aktorId"].asString
+                        associations.add(kjedeId to aktorId)
+                    }
+                    obj.entrySet().forEach { findAssociations(it.value) }
+                }
+                element.isJsonArray -> element.asJsonArray.forEach { findAssociations(it) }
+            }
+        }
+
+        findAssociations(jsonElement)
+        return associations
     }
 
     val cacheHenvendelselisteGet: HttpHandler = {
@@ -223,12 +258,14 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         val result = database.cacheCountRows()
         Metrics.cacheSize.set(result.toDouble())
         log.info { "Cache size check result $result" }
+        val assDel = database.kjedeToAktorIdDeleteExpiredRows()
         val deleted = database.deleteExpiredRows()
-        Response(OK).body("$result, deleted $deleted")
+        Response(OK).body("$result, deleted $deleted, ass $assDel")
     }
 
     val cachePostgresClear: HttpHandler = {
+        val assDel = database.kjedeToAktorIdDeleteAllRows()
         val deleted = database.deleteAllRows()
-        Response(OK).body("Deleted $deleted")
+        Response(OK).body("Deleted $deleted, ass $assDel")
     }
 }
