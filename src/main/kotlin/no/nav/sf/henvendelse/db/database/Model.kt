@@ -32,6 +32,14 @@ object Henvendelseliste : Table() {
     val expiresAt = datetime("expires_at").nullable().index()
 }
 
+object KjedeToAktor : Table() {
+    val kjedeId = varchar("kjedeid", 18).uniqueIndex()
+    val aktorId = varchar("aktorid", 20)
+
+    // Record metadata
+    val expiresAt = datetime("expires_at").nullable().index()
+}
+
 data class HenvendelseRecord(
     val kjedeId: String,
     val aktorId: String,

@@ -87,6 +87,21 @@ class PostgresDatabase {
         }
     }
 
+    fun createKjedeToAktorCache(dropFirst: Boolean = false) {
+        transaction {
+            if (dropFirst) {
+                log.info { "Dropping table KjedeToAktor" }
+                val dropStatement =
+                    TransactionManager.current().connection.prepareStatement("DROP TABLE kjedetoaktor", false)
+                dropStatement.executeUpdate()
+                log.info { "Drop performed KjedeToAktor" }
+            }
+
+            log.info { "Creating table KjedeToAktor" }
+            SchemaUtils.create(KjedeToAktor)
+        }
+    }
+
     fun upsertHenvendelse(kjedeId: String, aktorId: String, fnr: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {
         return transaction {
             Henvendelser.upsert(
