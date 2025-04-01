@@ -18,6 +18,7 @@ import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
+import java.io.File
 
 const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
@@ -225,6 +226,19 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
+    val cacheHenvendelselisteDeleteByKjedeId: HttpHandler = {
+        val kjedeIdParam = it.query(KJEDE_ID)
+        if (kjedeIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $KJEDE_ID param")
+        } else {
+            val aktorId = database.kjedeToAktorIdGet(kjedeIdParam)
+            if (aktorId != null) {
+                File("/tmp/latestLookup").writeText("$kjedeIdParam to $aktorId")
+                database.deleteCache(aktorId)
+            }
+            Response(OK)
+        }
+    }
     val cacheHenvendelselisteDelete: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
         if (aktorIdParam == null) {
