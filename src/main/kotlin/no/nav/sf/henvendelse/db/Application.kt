@@ -19,7 +19,6 @@ import org.http4k.routing.static
 import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
 import org.http4k.server.asServer
-import java.lang.Exception
 
 class Application(
     private val tokenValidator: TokenValidator = DefaultTokenValidator(),
@@ -34,11 +33,7 @@ class Application(
         apiServer(8080).start()
         // database.create(false)
         // database.createCache()
-        try {
-            database.createKjedeToAktorCache()
-        } catch (e: Exception) {
-            log.error { "Exception at create kjede to aktor cache:" + e.stackTraceToString() }
-        }
+        // database.createKjedeToAktorCache()
     }
 
     fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
