@@ -10,6 +10,7 @@ import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
 import org.jetbrains.exposed.sql.andWhere
+import org.jetbrains.exposed.sql.batchUpsert
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
@@ -224,6 +225,24 @@ class PostgresDatabase {
         } catch (e: Exception) {
             log.error { e.stackTraceToString() }
             return false
+        }
+    }
+
+    fun bulkKjedeToAktorIdPut(associations: Set<Pair<String, String>>, ttlInSeconds: Int?): Boolean {
+        return try {
+            val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
+
+            transaction {
+                // Bulk insert with upsert behavior
+                Henvendelseliste.batchUpsert(associations, keys = arrayOf(KjedeToAktor.kjedeId)) { (kjedeId, aktorId) ->
+                    this[KjedeToAktor.kjedeId] = kjedeId
+                    this[KjedeToAktor.aktorId] = aktorId
+                }
+            }
+            true
+        } catch (e: Exception) {
+            log.error { e.stackTraceToString() }
+            false
         }
     }
 

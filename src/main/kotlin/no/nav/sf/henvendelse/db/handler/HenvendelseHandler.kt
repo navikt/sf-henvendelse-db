@@ -18,7 +18,6 @@ import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
-import java.io.File
 
 const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
@@ -125,7 +124,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                             )
                             result?.let { updatedKjedeIds.add(result.kjedeId) }
                         }
-                        log.info { "Upserted ${updatedKjedeIds.size} items" }
+                        // log.info { "Upserted ${updatedKjedeIds.size} items" }
                         Response(OK).body("Upserted ${updatedKjedeIds.size} items")
                     }
                 }
@@ -163,7 +162,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            log.info { "Postgres Cache PUT on aktorId $aktorIdParam" }
+            // log.info { "Postgres Cache PUT on aktorId $aktorIdParam" }
             // loggedCacheRequests++
             // if (loggedCacheRequests <= loggedCacheRequestsLimit) {
             //    File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}-$aktorIdParam").writeText(it.toMessage())
@@ -171,7 +170,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             val success = database.cachePut(aktorIdParam, it.bodyString(), TTLInSecondsPostgres)
             if (success) {
                 GlobalScope.launch {
-                    updateKjedeToAktorAssociations(it.bodyString())
+                    updateKjedeToAktorAssociations(it.bodyString(), database)
                 }
                 Response(OK)
             } else {
@@ -180,9 +179,8 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
-    fun updateKjedeToAktorAssociations(json: String) {
-        val result = findKjedeToAktorAssociations(json)
-        File("/tmp/latestAssList").writeText(result.toString())
+    fun updateKjedeToAktorAssociations(json: String, dbRef: PostgresDatabase) {
+        dbRef.bulkKjedeToAktorIdPut(findKjedeToAktorAssociations(json), TTLInSecondsPostgres)
     }
 
     fun findKjedeToAktorAssociations(json: String): Set<Pair<String, String>> {
@@ -213,7 +211,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            log.info { "Postgres Cache GET on aktorId $aktorIdParam" }
+            // log.info { "Postgres Cache GET on aktorId $aktorIdParam" }
             val result = database.cacheGet(aktorIdParam)
 //            loggedCacheGetRequests++
 //            if (loggedCacheGetRequests <= loggedCacheGetRequestsLimit) {
@@ -232,7 +230,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            log.info { "Postgres Cache DELETE on aktorIds $aktorIdParam" }
+            // log.info { "Postgres Cache DELETE on aktorIds $aktorIdParam" }
             val aktorIds = aktorIdParam.split(",")
             aktorIds.forEach { aktorId ->
                 database.deleteCache(aktorId)
