@@ -214,7 +214,7 @@ class PostgresDatabase {
             val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
 
             transaction {
-                Henvendelseliste.upsert(
+                KjedeToAktor.upsert(
                     keys = arrayOf(KjedeToAktor.kjedeId) // Perform update if there is a conflict here
                 ) {
                     it[KjedeToAktor.kjedeId] = kjedeId
@@ -234,7 +234,7 @@ class PostgresDatabase {
 
             transaction {
                 // Bulk insert with upsert behavior
-                Henvendelseliste.batchUpsert(associations, keys = arrayOf(KjedeToAktor.kjedeId)) { (kjedeId, aktorId) ->
+                KjedeToAktor.batchUpsert(associations, keys = arrayOf(KjedeToAktor.kjedeId)) { (kjedeId, aktorId) ->
                     this[KjedeToAktor.kjedeId] = kjedeId
                     this[KjedeToAktor.aktorId] = aktorId
                 }
@@ -247,7 +247,7 @@ class PostgresDatabase {
     }
 
     fun kjedeToAktorIdGet(kjedeId: String): String? = transaction {
-        Henvendelseliste
+        KjedeToAktor
             .selectAll().where { KjedeToAktor.kjedeId eq kjedeId }
             .filter { it[KjedeToAktor.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
             .map { it[KjedeToAktor.aktorId].toString() }
