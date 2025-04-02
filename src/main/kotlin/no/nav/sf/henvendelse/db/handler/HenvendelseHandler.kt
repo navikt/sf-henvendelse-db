@@ -16,6 +16,7 @@ import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
+import org.http4k.core.Status.Companion.INTERNAL_SERVER_ERROR
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
 import java.io.File
@@ -231,12 +232,17 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (kjedeIdParam == null) {
             Response(BAD_REQUEST).body("Missing $KJEDE_ID param")
         } else {
-            val aktorId = database.kjedeToAktorIdGet(kjedeIdParam)
-            if (aktorId != null) {
-                File("/tmp/latestLookup").writeText("$kjedeIdParam to $aktorId")
-                database.deleteCache(aktorId)
+            try {
+                val aktorId = database.kjedeToAktorIdGet(kjedeIdParam)
+                if (aktorId != null) {
+                    File("/tmp/latestLookup").writeText("$kjedeIdParam to $aktorId")
+                    database.deleteCache(aktorId)
+                }
+                Response(OK)
+            } catch (e: Exception) {
+                File("/tmp/failedDeleteByKjedeId").writeText(e.stackTraceToString())
+                Response(INTERNAL_SERVER_ERROR)
             }
-            Response(OK)
         }
     }
     val cacheHenvendelselisteDelete: HttpHandler = {
