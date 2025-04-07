@@ -141,11 +141,18 @@ class PostgresDatabase {
         Henvendelser.selectAll().count()
     }
 
-    fun cacheGet(aktorId: String): String? = transaction {
+    data class CachedValue(val json: String, val expiresAt: LocalDateTime?)
+
+    fun cacheGet(aktorId: String): CachedValue? = transaction {
         Henvendelseliste
             .selectAll().where { Henvendelseliste.aktorId eq aktorId }
             .filter { it[Henvendelseliste.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
-            .map { it[Henvendelseliste.json].toString() }
+            .map {
+                CachedValue(
+                    json = it[Henvendelseliste.json].toString(),
+                    expiresAt = it[Henvendelseliste.expiresAt]
+                )
+            }
             .firstOrNull()
     }
 

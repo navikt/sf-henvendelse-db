@@ -213,16 +213,16 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            // log.info { "Postgres Cache GET on aktorId $aktorIdParam" }
             val result = database.cacheGet(aktorIdParam)
-//            loggedCacheGetRequests++
-//            if (loggedCacheGetRequests <= loggedCacheGetRequestsLimit) {
-//                File("/tmp/cache-get-response-${String.format("%03d", loggedCacheGetRequests)}-$aktorIdParam").writeText(result ?: "NO CONTENT")
-//            }
             if (result == null) {
                 Response(NO_CONTENT)
             } else {
-                Response(OK).body(result)
+                val expiresAt = result.expiresAt
+                val lastModified = expiresAt?.minusSeconds(TTLInSecondsPostgres.toLong())
+                val formattedLastModified = lastModified?.toString() ?: ""
+                Response(OK)
+                    .header("cache_last_modified", formattedLastModified)
+                    .body(result.json)
             }
         }
     }
