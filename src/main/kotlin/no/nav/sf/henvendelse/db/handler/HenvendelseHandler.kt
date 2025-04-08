@@ -235,7 +235,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             try {
                 val aktorId = database.kjedeToAktorIdGet(kjedeIdParam)
                 if (aktorId != null) {
-                    File("/tmp/latestLookup").writeText("$kjedeIdParam to $aktorId")
+                    // File("/tmp/latestLookup").writeText("$kjedeIdParam to $aktorId")
                     database.deleteCache(aktorId)
                 }
                 Response(OK)
@@ -294,7 +294,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         } else {
             val result = database.cacheGet(aktorIdParam)
             if (result == null) {
-                Response(NO_CONTENT)
+                Response(OK).body("$aktorIdParam Not in cache")
             } else {
                 val expiresAt = result.expiresAt
                 val lastModified = expiresAt?.minusSeconds(TTLInSecondsPostgres.toLong())
