@@ -255,19 +255,18 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             aktorIds.forEach { aktorId ->
                 database.deleteCache(aktorId)
             }
-            /*
+
             try {
                 if (tokenValidator.hasTokenFromSalesforce(it)) {
                     Metrics.cacheDelete.labels("salesforce").inc()
-                    log.info { "Cache DELETE from SF" }
+                    log.info { "Cache DELETE from SF ($aktorIdParam)" }
                 } else {
                     Metrics.cacheDelete.labels("proxy").inc()
-                    log.info { "Cache DELETE from proxy" }
+                    log.info { "Cache DELETE from proxy ($aktorIdParam)" }
                 }
             } catch (e: Exception) {
                 log.error { "Failed to register cache delete metric: " + e.stackTraceToString() }
             }
-             */
             Response(OK)
         }
     }
