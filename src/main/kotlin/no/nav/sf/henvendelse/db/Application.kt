@@ -54,7 +54,8 @@ class Application(
         "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete,
         "/cache/henvendelselistebykjedeid" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDeleteByKjedeId,
         "/internal/cache/count" bind Method.GET to henvendelse.cachePostgresCount,
-        "/internal/cache/clear" bind Method.GET to henvendelse.cachePostgresClear
+        "/internal/cache/clear" bind Method.GET to henvendelse.cachePostgresClear,
+        "/internal/cache/probe" bind Method.GET to henvendelse.cacheProbe
     )
 
     /**

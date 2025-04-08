@@ -286,4 +286,25 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         val deleted = database.deleteAllRows()
         Response(OK).body("Deleted $deleted, ass $assDel")
     }
+
+    val cacheProbe: HttpHandler = {
+        val aktorIdParam = it.query(AKTOR_ID)
+        if (aktorIdParam == null) {
+            Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else {
+            val result = database.cacheGet(aktorIdParam)
+            if (result == null) {
+                Response(NO_CONTENT)
+            } else {
+                val expiresAt = result.expiresAt
+                val lastModified = expiresAt?.minusSeconds(TTLInSecondsPostgres.toLong())
+                val formattedLastModified = lastModified?.toString() ?: ""
+                val wouldBeResponse = Response(OK)
+                    .header("cache_last_modified", formattedLastModified)
+                    .body(result.json)
+                File("/tmp/probe-$aktorIdParam").writeText(wouldBeResponse.toMessage())
+                Response(OK).body("Found cached entry on $aktorIdParam - cache_last_modified $formattedLastModified")
+            }
+        }
+    }
 }
