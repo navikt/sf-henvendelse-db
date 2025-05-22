@@ -188,6 +188,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                 val lastModified = expiresAt?.minusSeconds(TTLInSecondsPostgres.toLong())
                 val formattedLastModified = lastModified?.toString() ?: ""
                 Response(OK)
+                    .header("Content-Type", "application/json")
                     .header("cache_last_modified", formattedLastModified)
                     .body(result.json)
             }
