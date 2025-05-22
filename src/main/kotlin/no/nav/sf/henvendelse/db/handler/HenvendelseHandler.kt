@@ -171,41 +171,11 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             // }
             val success = database.cachePut(aktorIdParam, it.bodyString(), TTLInSecondsPostgres)
             if (success) {
-                GlobalScope.launch {
-                    updateKjedeToAktorAssociations(it.bodyString(), database)
-                }
                 Response(OK)
             } else {
                 Response(Status.INTERNAL_SERVER_ERROR).body("Failed to perform postgres put")
             }
         }
-    }
-
-    fun updateKjedeToAktorAssociations(json: String, dbRef: PostgresDatabase) {
-        dbRef.bulkKjedeToAktorIdPut(findKjedeToAktorAssociations(json), TTLInSecondsPostgres)
-    }
-
-    fun findKjedeToAktorAssociations(json: String): Set<Pair<String, String>> {
-        val jsonElement = JsonParser.parseString(json)
-        val associations = mutableSetOf<Pair<String, String>>()
-
-        fun findAssociations(element: JsonElement) {
-            when {
-                element.isJsonObject -> {
-                    val obj = element.asJsonObject
-                    if (obj.has("kjedeId") && obj.has("aktorId")) {
-                        val kjedeId = obj["kjedeId"].asString
-                        val aktorId = obj["aktorId"].asString
-                        associations.add(kjedeId to aktorId)
-                    }
-                    obj.entrySet().forEach { findAssociations(it.value) }
-                }
-                element.isJsonArray -> element.asJsonArray.forEach { findAssociations(it) }
-            }
-        }
-
-        findAssociations(jsonElement)
-        return associations
     }
 
     val cacheHenvendelselisteGet: HttpHandler = {
@@ -227,24 +197,6 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
-    val cacheHenvendelselisteDeleteByKjedeId: HttpHandler = {
-        val kjedeIdParam = it.query(KJEDE_ID)
-        if (kjedeIdParam == null) {
-            Response(BAD_REQUEST).body("Missing $KJEDE_ID param")
-        } else {
-            try {
-                val aktorId = database.kjedeToAktorIdGet(kjedeIdParam)
-                if (aktorId != null) {
-                    // File("/tmp/latestLookup").writeText("$kjedeIdParam to $aktorId")
-                    database.deleteCache(aktorId)
-                }
-                Response(OK)
-            } catch (e: Exception) {
-                File("/tmp/failedDeleteByKjedeId").writeText(e.stackTraceToString())
-                Response(INTERNAL_SERVER_ERROR)
-            }
-        }
-    }
     val cacheHenvendelselisteDelete: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
         if (aktorIdParam == null) {
