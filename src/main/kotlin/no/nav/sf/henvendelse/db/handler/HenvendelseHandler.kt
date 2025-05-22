@@ -16,6 +16,7 @@ import org.http4k.core.Status.Companion.BAD_REQUEST
 import org.http4k.core.Status.Companion.INTERNAL_SERVER_ERROR
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
+import java.io.ByteArrayInputStream
 import java.io.File
 
 const val KJEDE_ID = "kjedeId"
@@ -187,10 +188,13 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                 val expiresAt = result.expiresAt
                 val lastModified = expiresAt?.minusSeconds(TTLInSecondsPostgres.toLong())
                 val formattedLastModified = lastModified?.toString() ?: ""
+                // Wrap the JSON string as InputStream to stream body
+                val inputStream = ByteArrayInputStream(result.json.toByteArray(Charsets.UTF_8))
+
                 Response(OK)
                     .header("Content-Type", "application/json")
                     .header("cache_last_modified", formattedLastModified)
-                    .body(result.json)
+                    .body(inputStream)
             }
         }
     }

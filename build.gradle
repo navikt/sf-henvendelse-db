@@ -48,6 +48,7 @@ dependencies {
 
     implementation 'io.lettuce:lettuce-core:6.5.5.RELEASE'
 
+    implementation "org.http4k:http4k-core:3.251.0"
     implementation "org.http4k:http4k-server-apache:3.251.0"
 
     implementation "io.github.microutils:kotlin-logging:1.7.9"
