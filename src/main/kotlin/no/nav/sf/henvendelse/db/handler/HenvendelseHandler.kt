@@ -2,12 +2,9 @@ package no.nav.sf.henvendelse.db.handler
 
 import com.google.gson.Gson
 import com.google.gson.JsonArray
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.Metrics
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
