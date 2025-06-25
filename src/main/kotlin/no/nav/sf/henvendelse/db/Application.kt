@@ -16,8 +16,8 @@ import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
 import org.http4k.routing.static
-import org.http4k.server.ApacheServer
 import org.http4k.server.Http4kServer
+import org.http4k.server.Netty
 import org.http4k.server.asServer
 
 class Application(
@@ -36,7 +36,7 @@ class Application(
         // database.createKjedeToAktorCache()
     }
 
-    fun apiServer(port: Int): Http4kServer = api().asServer(ApacheServer(port))
+    fun apiServer(port: Int): Http4kServer = api().asServer(Netty(port))
 
     fun api(): HttpHandler = routes(
         "/internal/isAlive" bind Method.GET to { Response(Status.OK) },
@@ -71,7 +71,7 @@ class Application(
             PathMethod(path, method) to { request ->
                 Metrics.apiCalls.labels(path).inc()
                 val token = tokenValidator.firstValidToken(request)
-                if (token.isPresent) {
+                if (token != null) {
                     action(request)
                 } else {
                     Response(Status.UNAUTHORIZED)

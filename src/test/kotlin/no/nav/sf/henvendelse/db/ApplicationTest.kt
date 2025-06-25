@@ -11,16 +11,14 @@ import org.http4k.core.Response
 import org.http4k.core.Uri
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Optional
 
 class ApplicationTest {
     private val mockTokenValidator = mockk<TokenValidator>()
-    private val mockTokenOptional = mockk<Optional<JwtToken>>()
+    private val mockToken = mockk<JwtToken>()
 
     @BeforeEach
     fun setup() {
-        every { mockTokenValidator.firstValidToken(any()) } returns mockTokenOptional
-        every { mockTokenOptional.isPresent } returns true
+        every { mockTokenValidator.firstValidToken(any()) } returns mockToken
     }
 
     @Test
@@ -49,8 +47,7 @@ class ApplicationTest {
         every { request.uri } returns Uri.of("/path")
         every { request.method } returns Method.GET
         every { action.invoke(any()) } returns response
-        every { mockTokenOptional.isPresent } returns false // No approved tokens
-        every { mockTokenValidator.firstValidToken(any()) } returns mockTokenOptional
+        every { mockTokenValidator.firstValidToken(any()) } returns null // No approved tokens
 
         // Create an instance of AuthRouteBuilder
         val authRouteBuilder = Application.AuthRouteBuilder("/path", Method.GET, mockTokenValidator)

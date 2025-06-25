@@ -14,22 +14,18 @@ import org.http4k.core.Status
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.util.Optional
 
 class HenvendelseHandlerTest {
     val mockDatabase = mockk<PostgresDatabase>()
     val mockTokenValidator = mockk<TokenValidator>()
-    val mockTokenOptional = mockk<Optional<JwtToken>>()
     val mockToken = mockk<JwtToken>()
 
     val henvendelseHandler = HenvendelseHandler(mockDatabase, mockTokenValidator, gson)
 
     @BeforeEach
     fun setup() {
-        every { mockTokenValidator.firstValidToken(any()) } returns mockTokenOptional
+        every { mockTokenValidator.firstValidToken(any()) } returns mockToken
         every { mockTokenValidator.hasTokenFromSalesforce(any()) } returns false
-        every { mockTokenOptional.isPresent } returns true
-        every { mockTokenOptional.get() } returns mockToken
         every { mockDatabase.upsertHenvendelse(any(), any(), any(), any(), any()) } returns null
     }
 

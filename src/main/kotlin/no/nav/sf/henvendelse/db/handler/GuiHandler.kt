@@ -39,7 +39,7 @@ class GuiHandler(database: PostgresDatabase, gson: Gson, tokenValidator: TokenVa
             username = tokenValidator.nameClaim(it),
             expireTime = tokenValidator.expireTime(it)
         )
-        File("/tmp/latestviewtoken").writeText(tokenValidator.firstValidToken(it).get().tokenAsString)
+        File("/tmp/latestviewtoken").writeText(tokenValidator.firstValidToken(it)?.encodedToken ?: "null")
         Response(Status.OK).body(gson.toJson(viewData))
     }
 }
