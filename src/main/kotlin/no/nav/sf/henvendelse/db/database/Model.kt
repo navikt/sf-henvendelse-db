@@ -46,7 +46,7 @@ data class HenvendelseRecord(
     val fnr: String,
     val json: String,
     val lastModified: LocalDateTime,
-    val lastModifiedBySF: Boolean
+    val lastModifiedBySF: Boolean,
 )
 
 fun ResultRow.toHenvendelseRecord() =
@@ -56,5 +56,5 @@ fun ResultRow.toHenvendelseRecord() =
         fnr = this[Henvendelser.fnr],
         json = this[Henvendelser.json],
         lastModified = this[Henvendelser.lastModified],
-        lastModifiedBySF = this[Henvendelser.lastModifiedBySF]
+        lastModifiedBySF = this[Henvendelser.lastModifiedBySF],
     )

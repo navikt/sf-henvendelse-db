@@ -13,7 +13,6 @@ import org.http4k.core.HttpHandler
 import org.http4k.core.Response
 import org.http4k.core.Status
 import org.http4k.core.Status.Companion.BAD_REQUEST
-import org.http4k.core.Status.Companion.INTERNAL_SERVER_ERROR
 import org.http4k.core.Status.Companion.NO_CONTENT
 import org.http4k.core.Status.Companion.OK
 import java.io.ByteArrayInputStream
@@ -23,8 +22,12 @@ const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
 const val FNR = "fnr"
 
-class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValidator, gson: Gson) {
-    private val TTLInSecondsPostgres: Int = 60 * 60 * 96 // 96h
+class HenvendelseHandler(
+    database: PostgresDatabase,
+    tokenValidator: TokenValidator,
+    gson: Gson,
+) {
+    private val timeToLiveInSecondsPostgres: Int = 60 * 60 * 96 // 96h
 
     private val log = KotlinLogging.logger { }
 
@@ -39,13 +42,14 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                 if (validationResult.isInvalid()) {
                     Response(BAD_REQUEST).body(validationResult.errorMessage)
                 } else {
-                    val result = database.upsertHenvendelse(
-                        kjedeId = validationResult.kjedeId,
-                        aktorId = validationResult.aktorId,
-                        fnr = validationResult.fnr,
-                        json = jsonArray.toString(),
-                        updateBySF = tokenValidator.hasTokenFromSalesforce(it)
-                    )
+                    val result =
+                        database.upsertHenvendelse(
+                            kjedeId = validationResult.kjedeId,
+                            aktorId = validationResult.aktorId,
+                            fnr = validationResult.fnr,
+                            json = jsonArray.toString(),
+                            updateBySF = tokenValidator.hasTokenFromSalesforce(it),
+                        )
                     Response(OK).body(gson.toJson(result))
                 }
             } catch (_: JsonParseException) {
@@ -54,7 +58,12 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
         }
     }
 
-    data class ValidationResult(val errorMessage: String, val kjedeId: String = "", val aktorId: String = "", val fnr: String = "") {
+    data class ValidationResult(
+        val errorMessage: String,
+        val kjedeId: String = "",
+        val aktorId: String = "",
+        val fnr: String = "",
+    ) {
         fun isInvalid() = errorMessage.isNotBlank()
     }
 
@@ -115,13 +124,14 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                         jsonArray.forEach { e ->
                             val array = e as JsonArray
                             val firstObject = array.get(0) as JsonObject
-                            val result = database.upsertHenvendelse(
-                                kjedeId = firstObject[KJEDE_ID].asString,
-                                aktorId = firstObject[AKTOR_ID].asString,
-                                fnr = firstObject[FNR].asString,
-                                json = array.toString(),
-                                updateBySF = tokenValidator.hasTokenFromSalesforce(it)
-                            )
+                            val result =
+                                database.upsertHenvendelse(
+                                    kjedeId = firstObject[KJEDE_ID].asString,
+                                    aktorId = firstObject[AKTOR_ID].asString,
+                                    fnr = firstObject[FNR].asString,
+                                    json = array.toString(),
+                                    updateBySF = tokenValidator.hasTokenFromSalesforce(it),
+                                )
                             result?.let { updatedKjedeIds.add(result.kjedeId) }
                         }
                         // log.info { "Upserted ${updatedKjedeIds.size} items" }
@@ -167,7 +177,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
             // if (loggedCacheRequests <= loggedCacheRequestsLimit) {
             //    File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}-$aktorIdParam").writeText(it.toMessage())
             // }
-            val success = database.cachePut(aktorIdParam, it.bodyString(), TTLInSecondsPostgres)
+            val success = database.cachePut(aktorIdParam, it.bodyString(), timeToLiveInSecondsPostgres)
             if (success) {
                 Response(OK)
             } else {
@@ -186,7 +196,7 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                 Response(NO_CONTENT)
             } else {
                 val expiresAt = result.expiresAt
-                val lastModified = expiresAt?.minusSeconds(TTLInSecondsPostgres.toLong())
+                val lastModified = expiresAt?.minusSeconds(timeToLiveInSecondsPostgres.toLong())
                 val formattedLastModified = lastModified?.toString() ?: ""
                 // Wrap the JSON string as InputStream to stream body
                 val inputStream = ByteArrayInputStream(result.json.toByteArray(Charsets.UTF_8))
@@ -250,11 +260,12 @@ class HenvendelseHandler(database: PostgresDatabase, tokenValidator: TokenValida
                 Response(OK).body("$aktorIdParam Not in cache")
             } else {
                 val expiresAt = result.expiresAt
-                val lastModified = expiresAt?.minusSeconds(TTLInSecondsPostgres.toLong())
+                val lastModified = expiresAt?.minusSeconds(timeToLiveInSecondsPostgres.toLong())
                 val formattedLastModified = lastModified?.toString() ?: ""
-                val wouldBeResponse = Response(OK)
-                    .header("cache_last_modified", formattedLastModified)
-                    .body(result.json)
+                val wouldBeResponse =
+                    Response(OK)
+                        .header("cache_last_modified", formattedLastModified)
+                        .body(result.json)
                 File("/tmp/probe-$aktorIdParam").writeText(wouldBeResponse.toMessage())
                 Response(OK).body("Found cached entry on $aktorIdParam - cache_last_modified $formattedLastModified")
             }

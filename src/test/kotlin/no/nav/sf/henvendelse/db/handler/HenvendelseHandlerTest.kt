@@ -31,8 +31,9 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `upsertHenvendelseHandler should handle valid request`() {
-        val request = Request(Method.POST, "/henvendelse")
-            .body("""[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }]""")
+        val request =
+            Request(Method.POST, "/henvendelse")
+                .body("""[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }]""")
 
         henvendelseHandler.upsertHenvendelseHandler(request)
 
@@ -43,15 +44,18 @@ class HenvendelseHandlerTest {
                 fnr = "fnr1",
                 json =
                     """[{"kjedeId":"test","aktorId":"aktor1","fnr":"fnr1","data":"test-data"}]""",
-                updateBySF = false
+                updateBySF = false,
             )
         }
     }
 
     @Test
     fun `upsertHenvendelseHandler should call upsertHenvendelse with updated by SF if validator says it has token from salesforce`() {
-        val request = Request(Method.POST, "/henvendelse")
-            .body("""[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }, { "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data2" }]""")
+        val request =
+            Request(Method.POST, "/henvendelse")
+                .body(
+                    """[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }, { "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data2" }]""",
+                )
 
         every { mockTokenValidator.hasTokenFromSalesforce(any()) } returns true
 
@@ -64,7 +68,7 @@ class HenvendelseHandlerTest {
                 fnr = "fnr1",
                 json =
                     """[{"kjedeId":"test","aktorId":"aktor1","fnr":"fnr1","data":"test-data"},{"kjedeId":"test","aktorId":"aktor1","fnr":"fnr1","data":"test-data2"}]""",
-                updateBySF = true
+                updateBySF = true,
             )
         }
     }
@@ -107,8 +111,9 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `upsertHenvendelseHandler should reject missing fnr`() {
-        val request = Request(Method.POST, "/henvendelse")
-            .body("""[{ "kjedeId" : "test", "aktorId" : "aktor1", "data" : "test-data" }]""")
+        val request =
+            Request(Method.POST, "/henvendelse")
+                .body("""[{ "kjedeId" : "test", "aktorId" : "aktor1", "data" : "test-data" }]""")
 
         val response = henvendelseHandler.upsertHenvendelseHandler(request)
 
@@ -117,8 +122,11 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `upsertHenvendelseHandler should reject inconsistent aktorid between json objects`() {
-        val request = Request(Method.POST, "/henvendelse")
-            .body("""[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }, { "kjedeId" : "test", "aktorId" : "aktor1-deviant", "fnr" : "fnr1", "data" : "test-data2" }]""")
+        val request =
+            Request(Method.POST, "/henvendelse")
+                .body(
+                    """[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }, { "kjedeId" : "test", "aktorId" : "aktor1-deviant", "fnr" : "fnr1", "data" : "test-data2" }]""",
+                )
 
         val response = henvendelseHandler.upsertHenvendelseHandler(request)
 
@@ -127,8 +135,11 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `upsertHenvendelseHandler should reject inconsistent kjedeId between json objects`() {
-        val request = Request(Method.POST, "/henvendelse")
-            .body("""[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }, { "kjedeId" : "test-deviant", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data2" }]""")
+        val request =
+            Request(Method.POST, "/henvendelse")
+                .body(
+                    """[{ "kjedeId" : "test", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data" }, { "kjedeId" : "test-deviant", "aktorId" : "aktor1", "fnr" : "fnr1", "data" : "test-data2" }]""",
+                )
 
         val response = henvendelseHandler.upsertHenvendelseHandler(request)
 
@@ -137,11 +148,12 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `batchUpsertHenvendelserHandler should handle valid request with two henvendelse chains`() {
-        val request = Request(Method.PUT, "/henvendelser")
-            .body(
-                """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
-                [{"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data2"}, {"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data3"}]]"""
-            )
+        val request =
+            Request(Method.PUT, "/henvendelser")
+                .body(
+                    """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
+                [{"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data2"}, {"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data3"}]]""",
+                )
 
         println(request.body)
         println(JsonParser.parseString(request.body.toString()))
@@ -154,7 +166,7 @@ class HenvendelseHandlerTest {
                 json =
                     """[{"kjedeId":"test1","aktorId":"aktor1","fnr":"fnr1","data":"data1"}]""",
                 fnr = "fnr1",
-                updateBySF = false
+                updateBySF = false,
             )
         }
 
@@ -165,15 +177,16 @@ class HenvendelseHandlerTest {
                 json =
                     """[{"kjedeId":"test2","aktorId":"aktor2","fnr":"fnr2","data":"data2"},{"kjedeId":"test2","aktorId":"aktor2","fnr":"fnr2","data":"data3"}]""",
                 fnr = "fnr2",
-                updateBySF = false
+                updateBySF = false,
             )
         }
     }
 
     @Test
     fun `batchUpsertHenvendelserHandler should reject empty json array`() {
-        val request = Request(Method.PUT, "/henvendelser")
-            .body("""[]""")
+        val request =
+            Request(Method.PUT, "/henvendelser")
+                .body("""[]""")
 
         val response = henvendelseHandler.batchUpsertHenvendelserHandler(request)
 
@@ -182,11 +195,12 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `batchUpsertHenvendelserHandler should reject empty json array as one element`() {
-        val request = Request(Method.PUT, "/henvendelser")
-            .body(
-                """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
-                []"""
-            )
+        val request =
+            Request(Method.PUT, "/henvendelser")
+                .body(
+                    """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
+                []""",
+                )
 
         val response = henvendelseHandler.batchUpsertHenvendelserHandler(request)
 
@@ -195,11 +209,12 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `batchUpsertHenvendelserHandler should reject missing aktorId in one element`() {
-        val request = Request(Method.PUT, "/henvendelser")
-            .body(
-                """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
-                [{"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr1", "data": "data2"}, {"kjedeId": "test2", "fnr" : "fnr1", "data": "data3"}]]"""
-            )
+        val request =
+            Request(Method.PUT, "/henvendelser")
+                .body(
+                    """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
+                [{"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr1", "data": "data2"}, {"kjedeId": "test2", "fnr" : "fnr1", "data": "data3"}]]""",
+                )
 
         val response = henvendelseHandler.batchUpsertHenvendelserHandler(request)
 
@@ -208,11 +223,12 @@ class HenvendelseHandlerTest {
 
     @Test
     fun `batchUpsertHenvendelserHandler should reject inconsistent kjedeId in one element`() {
-        val request = Request(Method.PUT, "/henvendelser")
-            .body(
-                """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
-                [{"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data2"}, {"kjedeId": "test2-inconsistent", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data3"}]]"""
-            )
+        val request =
+            Request(Method.PUT, "/henvendelser")
+                .body(
+                    """[[{"kjedeId": "test1", "aktorId": "aktor1", "fnr" : "fnr1", "data": "data1"}], 
+                [{"kjedeId": "test2", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data2"}, {"kjedeId": "test2-inconsistent", "aktorId": "aktor2", "fnr" : "fnr2", "data": "data3"}]]""",
+                )
 
         val response = henvendelseHandler.batchUpsertHenvendelserHandler(request)
 

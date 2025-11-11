@@ -14,7 +14,10 @@ class LocalDateTimeTypeAdapter : TypeAdapter<LocalDateTime?>() {
     private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
     @Throws(IOException::class)
-    override fun write(out: JsonWriter, value: LocalDateTime?) {
+    override fun write(
+        out: JsonWriter,
+        value: LocalDateTime?,
+    ) {
         if (value == null) {
             out.nullValue()
         } else {
@@ -23,18 +26,19 @@ class LocalDateTimeTypeAdapter : TypeAdapter<LocalDateTime?>() {
     }
 
     @Throws(IOException::class)
-    override fun read(`in`: JsonReader): LocalDateTime? {
-        return if (`in`.peek() == JsonToken.NULL) {
+    override fun read(`in`: JsonReader): LocalDateTime? =
+        if (`in`.peek() == JsonToken.NULL) {
             `in`.nextNull()
             null
         } else {
             val dateString = `in`.nextString()
             LocalDateTime.parse(dateString, formatter)
         }
-    }
 }
 
-val gson: Gson = GsonBuilder().registerTypeAdapter(
-    LocalDateTime::class.java,
-    LocalDateTimeTypeAdapter()
-).create()
+val gson: Gson =
+    GsonBuilder()
+        .registerTypeAdapter(
+            LocalDateTime::class.java,
+            LocalDateTimeTypeAdapter(),
+        ).create()

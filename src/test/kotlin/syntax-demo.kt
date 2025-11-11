@@ -1,3 +1,5 @@
+@file:Suppress("ktlint:standard:filename", "ktlint:standard:no-consecutive-comments", "ktlint:standard:function-naming")
+
 /**
  * kotlin syntax - brief
  */
@@ -25,9 +27,7 @@ fun main() {
      * Extensions - Extend existing classes with new functionality without inheriting from them. This promotes cleaner and more readable code.
      */
     // Extension function
-    fun String.addHello(): String {
-        return "Hello, $this"
-    }
+    fun String.addHello(): String = "Hello, $this"
 
     // Usage
     val greeting = "Platypus".addHello()
@@ -39,7 +39,11 @@ fun main() {
      * Compare with POJO classes in Java
      */
 
-    /*data*/ class UserPOJO(val name: String, val age: Int)
+    // data
+    class UserPOJO(
+        val name: String,
+        val age: Int,
+    )
 
     val alice1 = UserPOJO("Alice", 1)
     val alice2 = UserPOJO("Alice", 1)
@@ -69,12 +73,14 @@ fun main() {
      * Scope functions - Scope functions allow concise ways to operate on objects within a specific context, avoiding repetitive object references.
      */
     // Scope functions
-    val user = UserPOJO("John", 25).apply {
-        // println("User: $name, Age: $age")
-    }.also {
-        // Additional operations if needed
-        // println("Additional operations on user")
-    }
+    val user =
+        UserPOJO("John", 25)
+            .apply {
+                // println("User: $name, Age: $age")
+            }.also {
+                // Additional operations if needed
+                // println("Additional operations on user")
+            }
 
     /**
      * let: Executes the block of code if the object is not null, allowing safe access to the object within the block.

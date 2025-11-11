@@ -5,17 +5,19 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 
 class JsonTest {
-
-    data class ExampleClass(val date: LocalDateTime)
+    data class ExampleClass(
+        val date: LocalDateTime,
+    )
 
     @Test
     fun `convert LocalDateTime to ISO-string`() {
-        val example = ExampleClass(
-            date = LocalDateTime.of(2000, 1, 2, 3, 4, 5)
-        )
+        val example =
+            ExampleClass(
+                date = LocalDateTime.of(2000, 1, 2, 3, 4, 5),
+            )
         Assertions.assertEquals(
             """{"date":"2000-01-02T03:04:05"}""",
-            gson.toJson(example)
+            gson.toJson(example),
         )
     }
 
@@ -27,7 +29,7 @@ class JsonTest {
         val result = gson.fromJson(example, ExampleClass::class.java)
         Assertions.assertEquals(
             LocalDateTime.of(2000, 1, 2, 3, 4, 5),
-            result.date
+            result.date,
         )
     }
 }

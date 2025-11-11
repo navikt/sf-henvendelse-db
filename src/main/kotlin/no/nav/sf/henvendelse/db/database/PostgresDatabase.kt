@@ -38,25 +38,26 @@ class PostgresDatabase {
     // That is handled via transaction {} ensuring connections are opened and closed properly
     val database = Database.connect(HikariDataSource(hikariConfig()))
 
-    private fun hikariConfig(): HikariConfig = HikariConfig().apply {
-        jdbcUrl = "jdbc:postgresql://localhost:$dbPort/$dbName" // This is where the cloud db proxy is located in the pod
-        driverClassName = "org.postgresql.Driver"
-        addDataSourceProperty("serverName", dbHost)
-        addDataSourceProperty("port", dbPort)
-        addDataSourceProperty("databaseName", dbName)
-        addDataSourceProperty("user", dbUsername)
-        addDataSourceProperty("password", dbPassword)
-        minimumIdle = 1
-        maxLifetime = 26000
-        maximumPoolSize = 10
-        connectionTimeout = 250
-        idleTimeout = 10000
-        isAutoCommit = false
-        transactionIsolation = "TRANSACTION_READ_COMMITTED"
-        // This sets the transaction isolation level to READ COMMITTED, ensuring that each query sees only committed data.
-        // It prevents dirty reads while allowing non-repeatable reads and phantom reads, reducing contention compared to SERIALIZABLE.
-        // This is useful for avoiding serialization conflicts in high-concurrency delete operations.
-    }
+    private fun hikariConfig(): HikariConfig =
+        HikariConfig().apply {
+            jdbcUrl = "jdbc:postgresql://localhost:$dbPort/$dbName" // This is where the cloud db proxy is located in the pod
+            driverClassName = "org.postgresql.Driver"
+            addDataSourceProperty("serverName", dbHost)
+            addDataSourceProperty("port", dbPort)
+            addDataSourceProperty("databaseName", dbName)
+            addDataSourceProperty("user", dbUsername)
+            addDataSourceProperty("password", dbPassword)
+            minimumIdle = 1
+            maxLifetime = 26000
+            maximumPoolSize = 10
+            connectionTimeout = 250
+            idleTimeout = 10000
+            isAutoCommit = false
+            transactionIsolation = "TRANSACTION_READ_COMMITTED"
+            // This sets the transaction isolation level to READ COMMITTED, ensuring that each query sees only committed data.
+            // It prevents dirty reads while allowing non-repeatable reads and phantom reads, reducing contention compared to SERIALIZABLE.
+            // This is useful for avoiding serialization conflicts in high-concurrency delete operations.
+        }
 
     fun create(dropFirst: Boolean = false) {
         transaction {
@@ -103,10 +104,16 @@ class PostgresDatabase {
         }
     }
 
-    fun upsertHenvendelse(kjedeId: String, aktorId: String, fnr: String, json: String, updateBySF: Boolean = false): HenvendelseRecord? {
-        return transaction {
+    fun upsertHenvendelse(
+        kjedeId: String,
+        aktorId: String,
+        fnr: String,
+        json: String,
+        updateBySF: Boolean = false,
+    ): HenvendelseRecord? =
+        transaction {
             Henvendelser.upsert(
-                keys = arrayOf(Henvendelser.kjedeId) // Perform update if there is a conflict here
+                keys = arrayOf(Henvendelser.kjedeId), // Perform update if there is a conflict here
             ) {
                 it[Henvendelser.kjedeId] = kjedeId
                 it[Henvendelser.aktorId] = aktorId
@@ -116,53 +123,72 @@ class PostgresDatabase {
                 it[lastModifiedBySF] = updateBySF
             }
         }.resultedValues?.firstOrNull()?.toHenvendelseRecord()
-    }
 
-    fun henteHenvendelse(kjedeId: String): List<HenvendelseRecord> = transaction {
-        Henvendelser.selectAll().andWhere { Henvendelser.kjedeId eq kjedeId }
-            .toList()
-            .map { it.toHenvendelseRecord() }
-    }
-
-    fun henteHenvendelserByAktorId(aktorId: String): List<HenvendelseRecord> =
+    fun henteHenvendelse(kjedeId: String): List<HenvendelseRecord> =
         transaction {
-            Henvendelser.selectAll().andWhere { Henvendelser.aktorId eq aktorId }
+            Henvendelser
+                .selectAll()
+                .andWhere { Henvendelser.kjedeId eq kjedeId }
                 .toList()
                 .map { it.toHenvendelseRecord() }
         }
 
-    fun view(page: Long, pageSize: Int): List<HenvendelseRecord> = transaction {
-        Henvendelser.selectAll().limit(pageSize, (page - 1) * pageSize)
-            .toList()
-            .map { it.toHenvendelseRecord() }
-    }
+    fun henteHenvendelserByAktorId(aktorId: String): List<HenvendelseRecord> =
+        transaction {
+            Henvendelser
+                .selectAll()
+                .andWhere { Henvendelser.aktorId eq aktorId }
+                .toList()
+                .map { it.toHenvendelseRecord() }
+        }
 
-    fun count(): Long = transaction {
-        Henvendelser.selectAll().count()
-    }
+    fun view(
+        page: Long,
+        pageSize: Int,
+    ): List<HenvendelseRecord> =
+        transaction {
+            Henvendelser
+                .selectAll()
+                .limit(pageSize, (page - 1) * pageSize)
+                .toList()
+                .map { it.toHenvendelseRecord() }
+        }
 
-    data class CachedValue(val json: String, val expiresAt: LocalDateTime?)
+    fun count(): Long =
+        transaction {
+            Henvendelser.selectAll().count()
+        }
 
-    fun cacheGet(aktorId: String): CachedValue? = transaction {
-        Henvendelseliste
-            .selectAll().where { Henvendelseliste.aktorId eq aktorId }
-            .filter { it[Henvendelseliste.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
-            .map {
-                CachedValue(
-                    json = it[Henvendelseliste.json].toString(),
-                    expiresAt = it[Henvendelseliste.expiresAt]
-                )
-            }
-            .firstOrNull()
-    }
+    data class CachedValue(
+        val json: String,
+        val expiresAt: LocalDateTime?,
+    )
 
-    fun cachePut(aktorId: String, value: String, ttlInSeconds: Int?): Boolean {
+    fun cacheGet(aktorId: String): CachedValue? =
+        transaction {
+            Henvendelseliste
+                .selectAll()
+                .where { Henvendelseliste.aktorId eq aktorId }
+                .filter { it[Henvendelseliste.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
+                .map {
+                    CachedValue(
+                        json = it[Henvendelseliste.json].toString(),
+                        expiresAt = it[Henvendelseliste.expiresAt],
+                    )
+                }.firstOrNull()
+        }
+
+    fun cachePut(
+        aktorId: String,
+        value: String,
+        ttlInSeconds: Int?,
+    ): Boolean {
         try {
             val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
 
             transaction {
                 Henvendelseliste.upsert(
-                    keys = arrayOf(Henvendelseliste.aktorId) // Perform update if there is a conflict here
+                    keys = arrayOf(Henvendelseliste.aktorId), // Perform update if there is a conflict here
                 ) {
                     it[Henvendelseliste.aktorId] = aktorId
                     it[Henvendelseliste.json] = value
@@ -176,34 +202,39 @@ class PostgresDatabase {
         }
     }
 
-    fun deleteCache(aktorId: String) = transaction {
-        Henvendelseliste.deleteWhere { Henvendelseliste.aktorId eq aktorId }
-    }
-
-    fun deleteAllRows(): Int = transaction {
-        Henvendelseliste.deleteAll()
-    }
-
-    fun deleteExpiredRows(): Int = transaction {
-        Henvendelseliste.deleteWhere {
-            Henvendelseliste.expiresAt lessEq LocalDateTime.now()
+    fun deleteCache(aktorId: String) =
+        transaction {
+            Henvendelseliste.deleteWhere { Henvendelseliste.aktorId eq aktorId }
         }
-    }
 
-    fun cacheCountRows(): Long = transaction {
-        Henvendelseliste.selectAll().count()
-    }
+    fun deleteAllRows(): Int =
+        transaction {
+            Henvendelseliste.deleteAll()
+        }
+
+    fun deleteExpiredRows(): Int =
+        transaction {
+            Henvendelseliste.deleteWhere {
+                Henvendelseliste.expiresAt lessEq LocalDateTime.now()
+            }
+        }
+
+    fun cacheCountRows(): Long =
+        transaction {
+            Henvendelseliste.selectAll().count()
+        }
 
     var initialCheckPassed = false
 
-    fun cacheReady(): Boolean {
-        return if (initialCheckPassed) {
+    fun cacheReady(): Boolean =
+        if (initialCheckPassed) {
             true
         } else {
             try {
-                val queryTime = measureTimeMillis {
-                    cacheGet("dummy")
-                }
+                val queryTime =
+                    measureTimeMillis {
+                        cacheGet("dummy")
+                    }
                 log.info { "Initial cache check query time $queryTime ms" }
                 if (queryTime < 100) {
                     initialCheckPassed = true
@@ -214,15 +245,18 @@ class PostgresDatabase {
                 false
             }
         }
-    }
 
-    fun kjedeToAktorIdPut(kjedeId: String, aktorId: String, ttlInSeconds: Int?): Boolean {
+    fun kjedeToAktorIdPut(
+        kjedeId: String,
+        aktorId: String,
+        ttlInSeconds: Int?,
+    ): Boolean {
         try {
             val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
 
             transaction {
                 KjedeToAktor.upsert(
-                    keys = arrayOf(KjedeToAktor.kjedeId) // Perform update if there is a conflict here
+                    keys = arrayOf(KjedeToAktor.kjedeId), // Perform update if there is a conflict here
                 ) {
                     it[KjedeToAktor.kjedeId] = kjedeId
                     it[KjedeToAktor.aktorId] = aktorId
@@ -235,8 +269,11 @@ class PostgresDatabase {
         }
     }
 
-    fun bulkKjedeToAktorIdPut(associations: Set<Pair<String, String>>, ttlInSeconds: Int?): Boolean {
-        return try {
+    fun bulkKjedeToAktorIdPut(
+        associations: Set<Pair<String, String>>,
+        ttlInSeconds: Int?,
+    ): Boolean =
+        try {
             val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
 
             transaction {
@@ -251,23 +288,26 @@ class PostgresDatabase {
             log.error { e.stackTraceToString() }
             false
         }
-    }
 
-    fun kjedeToAktorIdGet(kjedeId: String): String? = transaction {
-        KjedeToAktor
-            .selectAll().where { KjedeToAktor.kjedeId eq kjedeId }
-            .filter { it[KjedeToAktor.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
-            .map { it[KjedeToAktor.aktorId].toString() }
-            .firstOrNull()
-    }
-
-    fun kjedeToAktorIdDeleteAllRows(): Int = transaction {
-        KjedeToAktor.deleteAll()
-    }
-
-    fun kjedeToAktorIdDeleteExpiredRows(): Int = transaction {
-        KjedeToAktor.deleteWhere {
-            KjedeToAktor.expiresAt lessEq LocalDateTime.now()
+    fun kjedeToAktorIdGet(kjedeId: String): String? =
+        transaction {
+            KjedeToAktor
+                .selectAll()
+                .where { KjedeToAktor.kjedeId eq kjedeId }
+                .filter { it[KjedeToAktor.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
+                .map { it[KjedeToAktor.aktorId].toString() }
+                .firstOrNull()
         }
-    }
+
+    fun kjedeToAktorIdDeleteAllRows(): Int =
+        transaction {
+            KjedeToAktor.deleteAll()
+        }
+
+    fun kjedeToAktorIdDeleteExpiredRows(): Int =
+        transaction {
+            KjedeToAktor.deleteWhere {
+                KjedeToAktor.expiresAt lessEq LocalDateTime.now()
+            }
+        }
 }

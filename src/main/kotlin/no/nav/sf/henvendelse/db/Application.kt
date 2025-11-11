@@ -24,7 +24,7 @@ class Application(
     private val tokenValidator: TokenValidator = DefaultTokenValidator(),
     private val database: PostgresDatabase = PostgresDatabase(),
     private val gui: GuiHandler = GuiHandler(database, gson, tokenValidator),
-    private val henvendelse: HenvendelseHandler = HenvendelseHandler(database, tokenValidator, gson)
+    private val henvendelse: HenvendelseHandler = HenvendelseHandler(database, tokenValidator, gson),
 ) {
     private val log = KotlinLogging.logger { }
 
@@ -38,24 +38,25 @@ class Application(
 
     fun apiServer(port: Int): Http4kServer = api().asServer(Netty(port))
 
-    fun api(): HttpHandler = routes(
-        "/internal/isAlive" bind Method.GET to { Response(Status.OK) },
-        "/internal/isReady" bind Method.GET to isReadyHttpHandler,
-        "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
-        "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
-        "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
-        "/internal/view" authbind Method.GET to gui.viewHandler,
-        "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
-        "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
-        "/henvendelse" authbind Method.GET to henvendelse.fetchHenvendelseByKjedeIdHandler,
-        "/henvendelser" authbind Method.GET to henvendelse.fetchHenvendelserByAktorIdHandler,
-        "/cache/henvendelseliste" authbind Method.POST to henvendelse.cacheHenvendelselistePost,
-        "/cache/henvendelseliste" authbind Method.GET to henvendelse.cacheHenvendelselisteGet,
-        "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete,
-        "/internal/cache/count" bind Method.GET to henvendelse.cachePostgresCount,
-        "/internal/cache/clear" bind Method.GET to henvendelse.cachePostgresClear,
-        "/internal/cache/probe" bind Method.GET to henvendelse.cacheProbe
-    )
+    fun api(): HttpHandler =
+        routes(
+            "/internal/isAlive" bind Method.GET to { Response(Status.OK) },
+            "/internal/isReady" bind Method.GET to isReadyHttpHandler,
+            "/internal/metrics" bind Method.GET to Metrics.metricsHandler,
+            "/internal/swagger" bind static(ResourceLoader.Classpath("/swagger")),
+            "/internal/gui" bind static(ResourceLoader.Classpath("/gui")),
+            "/internal/view" authbind Method.GET to gui.viewHandler,
+            "/henvendelse" authbind Method.POST to henvendelse.upsertHenvendelseHandler,
+            "/henvendelser" authbind Method.PUT to henvendelse.batchUpsertHenvendelserHandler,
+            "/henvendelse" authbind Method.GET to henvendelse.fetchHenvendelseByKjedeIdHandler,
+            "/henvendelser" authbind Method.GET to henvendelse.fetchHenvendelserByAktorIdHandler,
+            "/cache/henvendelseliste" authbind Method.POST to henvendelse.cacheHenvendelselistePost,
+            "/cache/henvendelseliste" authbind Method.GET to henvendelse.cacheHenvendelselisteGet,
+            "/cache/henvendelseliste" authbind Method.DELETE to henvendelse.cacheHenvendelselisteDelete,
+            "/internal/cache/count" bind Method.GET to henvendelse.cachePostgresCount,
+            "/internal/cache/clear" bind Method.GET to henvendelse.cachePostgresClear,
+            "/internal/cache/probe" bind Method.GET to henvendelse.cacheProbe,
+        )
 
     /**
      * authbind: a variant of bind that takes care of authentication with use of tokenValidator
@@ -65,7 +66,7 @@ class Application(
     data class AuthRouteBuilder(
         val path: String,
         val method: Method,
-        private val tokenValidator: TokenValidator
+        private val tokenValidator: TokenValidator,
     ) {
         infix fun to(action: HttpHandler): RoutingHttpHandler =
             PathMethod(path, method) to { request ->
