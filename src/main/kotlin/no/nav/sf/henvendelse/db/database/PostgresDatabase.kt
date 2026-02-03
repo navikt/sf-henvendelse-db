@@ -59,6 +59,16 @@ class PostgresDatabase {
             // This is useful for avoiding serialization conflicts in high-concurrency delete operations.
         }
 
+    fun purgeOld() {
+        transaction {
+            val dropStatement =
+                TransactionManager.current().connection.prepareStatement("DROP TABLE henvendelser", false)
+            dropStatement.executeUpdate()
+            val dropStatement2 =
+                TransactionManager.current().connection.prepareStatement("DROP TABLE kjedetoaktor", false)
+            dropStatement2.executeUpdate()
+        }
+    }
     fun create(dropFirst: Boolean = false) {
         transaction {
             if (dropFirst) {
@@ -243,71 +253,6 @@ class PostgresDatabase {
             } catch (e: java.lang.Exception) {
                 log.error { e.printStackTrace() }
                 false
-            }
-        }
-
-    fun kjedeToAktorIdPut(
-        kjedeId: String,
-        aktorId: String,
-        ttlInSeconds: Int?,
-    ): Boolean {
-        try {
-            val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
-
-            transaction {
-                KjedeToAktor.upsert(
-                    keys = arrayOf(KjedeToAktor.kjedeId), // Perform update if there is a conflict here
-                ) {
-                    it[KjedeToAktor.kjedeId] = kjedeId
-                    it[KjedeToAktor.aktorId] = aktorId
-                }
-            }
-            return true
-        } catch (e: Exception) {
-            log.error { e.stackTraceToString() }
-            return false
-        }
-    }
-
-    fun bulkKjedeToAktorIdPut(
-        associations: Set<Pair<String, String>>,
-        ttlInSeconds: Int?,
-    ): Boolean =
-        try {
-            val expiresAt = ttlInSeconds?.let { LocalDateTime.now().plusSeconds(it.toLong()) }
-
-            transaction {
-                // Bulk insert with upsert behavior
-                KjedeToAktor.batchUpsert(associations, keys = arrayOf(KjedeToAktor.kjedeId)) { (kjedeId, aktorId) ->
-                    this[KjedeToAktor.kjedeId] = kjedeId
-                    this[KjedeToAktor.aktorId] = aktorId
-                }
-            }
-            true
-        } catch (e: Exception) {
-            log.error { e.stackTraceToString() }
-            false
-        }
-
-    fun kjedeToAktorIdGet(kjedeId: String): String? =
-        transaction {
-            KjedeToAktor
-                .selectAll()
-                .where { KjedeToAktor.kjedeId eq kjedeId }
-                .filter { it[KjedeToAktor.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
-                .map { it[KjedeToAktor.aktorId].toString() }
-                .firstOrNull()
-        }
-
-    fun kjedeToAktorIdDeleteAllRows(): Int =
-        transaction {
-            KjedeToAktor.deleteAll()
-        }
-
-    fun kjedeToAktorIdDeleteExpiredRows(): Int =
-        transaction {
-            KjedeToAktor.deleteWhere {
-                KjedeToAktor.expiresAt lessEq LocalDateTime.now()
             }
         }
 }

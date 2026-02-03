@@ -56,6 +56,9 @@ class Application(
             "/internal/cache/count" bind Method.GET to henvendelse.cachePostgresCount,
             "/internal/cache/clear" bind Method.GET to henvendelse.cachePostgresClear,
             "/internal/cache/probe" bind Method.GET to henvendelse.cacheProbe,
+            "/internal/cache/clearDb" bind Method.GET to henvendelse.clearDbHandler,
+            "/internal/cache/initDb" bind Method.GET to henvendelse.initDbHandler,
+            "/internal/purgeOld" bind Method.GET to henvendelse.purgeOldHandler,
         )
 
     /**
@@ -70,7 +73,7 @@ class Application(
     ) {
         infix fun to(action: HttpHandler): RoutingHttpHandler =
             PathMethod(path, method) to { request ->
-                Metrics.apiCalls.labels(path).inc()
+                Metrics.apiCalls.labels(path, method.name).inc()
                 val token = tokenValidator.firstValidToken(request)
                 if (token != null) {
                     action(request)

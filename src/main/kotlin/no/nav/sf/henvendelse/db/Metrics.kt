@@ -16,7 +16,7 @@ object Metrics {
 
     private val cRegistry: CollectorRegistry = CollectorRegistry.defaultRegistry
 
-    val apiCalls: Counter = registerLabelCounter("api_calls", "ingress")
+    val apiCalls: Counter = registerLabelCounter("api_calls", "ingress", "method")
 
     val cacheSize: Gauge = registerGauge("cache_size")
 

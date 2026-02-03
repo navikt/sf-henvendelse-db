@@ -239,15 +239,13 @@ class HenvendelseHandler(
         val result = database.cacheCountRows()
         Metrics.cacheSize.set(result.toDouble())
         log.info { "Cache size check result $result" }
-        val assDel = database.kjedeToAktorIdDeleteExpiredRows()
         val deleted = database.deleteExpiredRows()
-        Response(OK).body("$result, deleted $deleted, ass $assDel")
+        Response(OK).body("$result, deleted $deleted")
     }
 
     val cachePostgresClear: HttpHandler = {
-        val assDel = database.kjedeToAktorIdDeleteAllRows()
         val deleted = database.deleteAllRows()
-        Response(OK).body("Deleted $deleted, ass $assDel")
+        Response(OK).body("Deleted $deleted")
     }
 
     val cacheProbe: HttpHandler = {
@@ -270,5 +268,20 @@ class HenvendelseHandler(
                 Response(OK).body("Found cached entry on $aktorIdParam - cache_last_modified $formattedLastModified")
             }
         }
+    }
+
+    val clearDbHandler: HttpHandler = {
+        database.createCache(true)
+        Response(OK).body("Recreated db")
+    }
+
+    val initDbHandler: HttpHandler = {
+        database.createCache(false)
+        Response(OK).body("Db created")
+    }
+
+    val purgeOldHandler: HttpHandler = {
+        database.purgeOld()
+        Response(OK).body("Purged")
     }
 }

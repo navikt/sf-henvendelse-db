@@ -27,8 +27,6 @@ object Henvendelser : Table() {
 object Henvendelseliste : Table() {
     val aktorId = varchar("aktorid", 20).uniqueIndex()
     val json = varchar("json", MAX_LIMIT_VARCHAR)
-
-    // Record metadata
     val expiresAt = datetime("expires_at").nullable().index()
 }
 
