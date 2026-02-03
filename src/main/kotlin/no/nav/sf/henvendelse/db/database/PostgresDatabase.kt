@@ -69,6 +69,7 @@ class PostgresDatabase {
             dropStatement2.executeUpdate()
         }
     }
+
     fun create(dropFirst: Boolean = false) {
         transaction {
             if (dropFirst) {
