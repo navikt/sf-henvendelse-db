@@ -62,6 +62,7 @@ class Application(
         )
 
     /**
+     *
      * authbind: a variant of bind that takes care of authentication with use of tokenValidator
      */
     infix fun String.authbind(method: Method) = AuthRouteBuilder(this, method, tokenValidator)
