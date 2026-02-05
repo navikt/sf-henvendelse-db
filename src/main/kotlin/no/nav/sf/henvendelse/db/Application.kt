@@ -81,10 +81,10 @@ class Application(
     }
 
     private val isReadyHttpHandler: HttpHandler = {
-        if (database.cacheReady()) {
-            Response(Status.OK)
-        } else {
-            Response(Status.SERVICE_UNAVAILABLE)
-        }
+        // if (database.cacheReady()) {
+        Response(Status.OK)
+        // } else {
+        //    Response(Status.SERVICE_UNAVAILABLE)
+        // }
     }
 }
