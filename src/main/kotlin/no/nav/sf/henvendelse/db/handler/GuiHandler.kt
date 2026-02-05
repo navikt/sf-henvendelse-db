@@ -2,7 +2,6 @@ package no.nav.sf.henvendelse.db.handler
 
 import com.google.gson.Gson
 import no.nav.sf.henvendelse.db.config_VIEW_PAGE_SIZE
-import no.nav.sf.henvendelse.db.database.HenvendelseRecord
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.token.TokenValidator
 import org.http4k.core.HttpHandler
@@ -17,6 +16,7 @@ class GuiHandler(
 ) {
     private val viewPageSize = System.getenv(config_VIEW_PAGE_SIZE).toInt()
 
+    /*
     private data class ViewData(
         val page: Long,
         val pageCount: Long,
@@ -27,9 +27,12 @@ class GuiHandler(
         val expireTime: Long,
     )
 
+     */
+
     private fun pageCount(count: Long): Long = (count + viewPageSize - 1) / viewPageSize
 
     val viewHandler: HttpHandler = {
+        /*
         val page = it.query("page")!!.toLong()
         val count = database.count()
         val viewData =
@@ -43,6 +46,8 @@ class GuiHandler(
                 expireTime = tokenValidator.expireTime(it),
             )
         File("/tmp/latestviewtoken").writeText(tokenValidator.firstValidToken(it)?.encodedToken ?: "null")
-        Response(Status.OK).body(gson.toJson(viewData))
+
+         */
+        Response(Status.OK) // .body(gson.toJson(viewData))
     }
 }

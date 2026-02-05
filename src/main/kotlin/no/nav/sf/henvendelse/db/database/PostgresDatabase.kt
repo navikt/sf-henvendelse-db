@@ -9,8 +9,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.lessEq
-import org.jetbrains.exposed.sql.andWhere
-import org.jetbrains.exposed.sql.batchUpsert
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
@@ -70,21 +69,6 @@ class PostgresDatabase {
         }
     }
 
-    fun create(dropFirst: Boolean = false) {
-        transaction {
-            if (dropFirst) {
-                log.info { "Dropping table Henvendelser" }
-                val dropStatement =
-                    TransactionManager.current().connection.prepareStatement("DROP TABLE henvendelser", false)
-                dropStatement.executeUpdate()
-                log.info { "Drop performed of Henvendelser" }
-            }
-
-            log.info { "Creating table Henvendelser" }
-            SchemaUtils.create(Henvendelser)
-        }
-    }
-
     fun createCache(dropFirst: Boolean = false) {
         transaction {
             if (dropFirst) {
@@ -100,90 +84,29 @@ class PostgresDatabase {
         }
     }
 
-    fun createKjedeToAktorCache(dropFirst: Boolean = false) {
-        transaction {
-            if (dropFirst) {
-                log.info { "Dropping table KjedeToAktor" }
-                val dropStatement =
-                    TransactionManager.current().connection.prepareStatement("DROP TABLE kjedetoaktor", false)
-                dropStatement.executeUpdate()
-                log.info { "Drop performed KjedeToAktor" }
-            }
-
-            log.info { "Creating table KjedeToAktor" }
-            SchemaUtils.create(KjedeToAktor)
-        }
-    }
-
-    fun upsertHenvendelse(
-        kjedeId: String,
-        aktorId: String,
-        fnr: String,
-        json: String,
-        updateBySF: Boolean = false,
-    ): HenvendelseRecord? =
-        transaction {
-            Henvendelser.upsert(
-                keys = arrayOf(Henvendelser.kjedeId), // Perform update if there is a conflict here
-            ) {
-                it[Henvendelser.kjedeId] = kjedeId
-                it[Henvendelser.aktorId] = aktorId
-                it[Henvendelser.fnr] = fnr
-                it[Henvendelser.json] = json
-                it[lastModified] = LocalDateTime.now()
-                it[lastModifiedBySF] = updateBySF
-            }
-        }.resultedValues?.firstOrNull()?.toHenvendelseRecord()
-
-    fun henteHenvendelse(kjedeId: String): List<HenvendelseRecord> =
-        transaction {
-            Henvendelser
-                .selectAll()
-                .andWhere { Henvendelser.kjedeId eq kjedeId }
-                .toList()
-                .map { it.toHenvendelseRecord() }
-        }
-
-    fun henteHenvendelserByAktorId(aktorId: String): List<HenvendelseRecord> =
-        transaction {
-            Henvendelser
-                .selectAll()
-                .andWhere { Henvendelser.aktorId eq aktorId }
-                .toList()
-                .map { it.toHenvendelseRecord() }
-        }
-
-    fun view(
-        page: Long,
-        pageSize: Int,
-    ): List<HenvendelseRecord> =
-        transaction {
-            Henvendelser
-                .selectAll()
-                .limit(pageSize, (page - 1) * pageSize)
-                .toList()
-                .map { it.toHenvendelseRecord() }
-        }
-
-    fun count(): Long =
-        transaction {
-            Henvendelser.selectAll().count()
-        }
-
     data class CachedValue(
         val json: String,
         val expiresAt: LocalDateTime?,
     )
 
-    fun cacheGet(aktorId: String): CachedValue? =
+    fun cacheGet(
+        aktorId: String,
+        page: Int,
+        pageSize: Int,
+    ): CachedValue? =
         transaction {
             Henvendelseliste
                 .selectAll()
-                .where { Henvendelseliste.aktorId eq aktorId }
-                .filter { it[Henvendelseliste.expiresAt]?.isAfter(LocalDateTime.now()) ?: true } // Ignore expired records
+                .where {
+                    run {
+                        (Henvendelseliste.aktorId eq aktorId) and
+                            (Henvendelseliste.page eq page) and
+                            (Henvendelseliste.pageSize eq pageSize)
+                    }
+                }.limit(1) // small optimization
                 .map {
                     CachedValue(
-                        json = it[Henvendelseliste.json].toString(),
+                        json = it[Henvendelseliste.json],
                         expiresAt = it[Henvendelseliste.expiresAt],
                     )
                 }.firstOrNull()
@@ -191,6 +114,8 @@ class PostgresDatabase {
 
     fun cachePut(
         aktorId: String,
+        page: Int,
+        pageSize: Int,
         value: String,
         ttlInSeconds: Int?,
     ): Boolean {
@@ -199,9 +124,16 @@ class PostgresDatabase {
 
             transaction {
                 Henvendelseliste.upsert(
-                    keys = arrayOf(Henvendelseliste.aktorId), // Perform update if there is a conflict here
+                    keys =
+                        arrayOf(
+                            Henvendelseliste.aktorId,
+                            Henvendelseliste.page,
+                            Henvendelseliste.pageSize,
+                        ),
                 ) {
                     it[Henvendelseliste.aktorId] = aktorId
+                    it[Henvendelseliste.page] = page
+                    it[Henvendelseliste.pageSize] = pageSize
                     it[Henvendelseliste.json] = value
                     it[Henvendelseliste.expiresAt] = expiresAt
                 }
@@ -244,7 +176,7 @@ class PostgresDatabase {
             try {
                 val queryTime =
                     measureTimeMillis {
-                        cacheGet("dummy")
+                        cacheGet("dummy", 1, 50)
                     }
                 log.info { "Initial cache check query time $queryTime ms" }
                 if (queryTime < 100) {

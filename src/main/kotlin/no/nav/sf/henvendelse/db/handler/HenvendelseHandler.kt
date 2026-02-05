@@ -18,9 +18,9 @@ import org.http4k.core.Status.Companion.OK
 import java.io.ByteArrayInputStream
 import java.io.File
 
-const val KJEDE_ID = "kjedeId"
 const val AKTOR_ID = "aktorId"
-const val FNR = "fnr"
+const val PAGE = "page"
+const val PAGE_SIZE = "pageSize"
 
 class HenvendelseHandler(
     database: PostgresDatabase,
@@ -31,33 +31,6 @@ class HenvendelseHandler(
 
     private val log = KotlinLogging.logger { }
 
-    val upsertHenvendelseHandler: HttpHandler = {
-        if (it.bodyString().isBlank()) {
-            Response(BAD_REQUEST).body("Missing request body")
-        } else {
-            try {
-                val jsonArray = JsonParser.parseString(it.bodyString()) as JsonArray
-                val validationResult = validateJsonArray(jsonArray)
-
-                if (validationResult.isInvalid()) {
-                    Response(BAD_REQUEST).body(validationResult.errorMessage)
-                } else {
-                    val result =
-                        database.upsertHenvendelse(
-                            kjedeId = validationResult.kjedeId,
-                            aktorId = validationResult.aktorId,
-                            fnr = validationResult.fnr,
-                            json = jsonArray.toString(),
-                            updateBySF = tokenValidator.hasTokenFromSalesforce(it),
-                        )
-                    Response(OK).body(gson.toJson(result))
-                }
-            } catch (_: JsonParseException) {
-                Response(BAD_REQUEST).body("Failed to parse request body as json array")
-            }
-        }
-    }
-
     data class ValidationResult(
         val errorMessage: String,
         val kjedeId: String = "",
@@ -67,117 +40,17 @@ class HenvendelseHandler(
         fun isInvalid() = errorMessage.isNotBlank()
     }
 
-    private fun validateJsonArray(jsonArray: JsonArray): ValidationResult {
-        if (jsonArray.size() < 1) {
-            return ValidationResult("JSON array must contain at least one JSON object")
-        }
-        try {
-            val firstObject = jsonArray[0].asJsonObject
-            val kjedeId = firstObject[KJEDE_ID]?.asString ?: ""
-            val aktorId = firstObject[AKTOR_ID]?.asString ?: ""
-            val fnr = firstObject[FNR]?.asString ?: ""
-
-            if (kjedeId.isBlank()) {
-                return ValidationResult("Missing field kjedeId in json")
-            } else if (aktorId.isBlank()) {
-                return ValidationResult("Missing field aktorId in json")
-            } else if (fnr.isBlank()) {
-                return ValidationResult("Missing field fnr in json")
-            }
-
-            for (i in 1 until jsonArray.size()) {
-                val obj = jsonArray[i].asJsonObject
-                val currentKjedeId = obj[KJEDE_ID]?.asString
-                val currentAktorId = obj[AKTOR_ID]?.asString
-                val currentFnr = obj[FNR]?.asString
-
-                if (currentKjedeId != kjedeId) {
-                    return ValidationResult("Inconsistent kjedeId found in JSON array")
-                } else if (currentAktorId != aktorId) {
-                    return ValidationResult("Inconsistent aktorId found in JSON array")
-                } else if (currentFnr != fnr) {
-                    return ValidationResult("Inconsistent fnr found in JSON array")
-                }
-            }
-            return ValidationResult("", kjedeId, aktorId, fnr)
-        } catch (_: JsonParseException) {
-            return ValidationResult("Failed to parse json array element as json object")
-        }
-    }
-
-    val batchUpsertHenvendelserHandler: HttpHandler = {
-        if (it.bodyString().isBlank()) {
-            Response(BAD_REQUEST).body("Missing request body")
-        } else {
-            try {
-                val jsonArray = JsonParser.parseString(it.bodyString()).asJsonArray
-                if (jsonArray.size() < 1) {
-                    Response(BAD_REQUEST).body("Batch JSON array must contain at least one JSON array")
-                } else {
-                    jsonArray
-                        .map { e -> validateJsonArray(e as JsonArray) }
-                        .firstOrNull { r -> r.isInvalid() }
-                        ?.let { r ->
-                            Response(BAD_REQUEST).body("Request contains json array with error: ${r.errorMessage}")
-                        } ?: run {
-                        val updatedKjedeIds: MutableList<String> = mutableListOf()
-                        jsonArray.forEach { e ->
-                            val array = e as JsonArray
-                            val firstObject = array.get(0) as JsonObject
-                            val result =
-                                database.upsertHenvendelse(
-                                    kjedeId = firstObject[KJEDE_ID].asString,
-                                    aktorId = firstObject[AKTOR_ID].asString,
-                                    fnr = firstObject[FNR].asString,
-                                    json = array.toString(),
-                                    updateBySF = tokenValidator.hasTokenFromSalesforce(it),
-                                )
-                            result?.let { updatedKjedeIds.add(result.kjedeId) }
-                        }
-                        // log.info { "Upserted ${updatedKjedeIds.size} items" }
-                        Response(OK).body("Upserted ${updatedKjedeIds.size} items")
-                    }
-                }
-            } catch (_: JsonParseException) {
-                Response(BAD_REQUEST).body("Failed to parse request body as json array")
-            }
-        }
-    }
-
-    val fetchHenvendelseByKjedeIdHandler: HttpHandler = {
-        val kjedeId = it.query(KJEDE_ID)
-        if (kjedeId == null) {
-            Response(BAD_REQUEST).body("Missing parameter kjedeId")
-        } else {
-            val result = database.henteHenvendelse(kjedeId)
-            Response(OK).body(gson.toJson(result))
-        }
-    }
-
-    val fetchHenvendelserByAktorIdHandler: HttpHandler = {
-        val aktorId = it.query(AKTOR_ID)
-        if (aktorId == null) {
-            Response(BAD_REQUEST).body("Missing parameter aktorId")
-        } else {
-            val result = database.henteHenvendelserByAktorId(aktorId)
-            Response(OK).body(gson.toJson(result))
-        }
-    }
-
     /**
      * POSTGRES variants
      */
     val cacheHenvendelselistePost: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
+        val pageParam = it.query(PAGE)?.toInt() ?: 1
+        val pageSizeParam = it.query(PAGE_SIZE)?.toInt() ?: 50
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            // log.info { "Postgres Cache PUT on aktorId $aktorIdParam" }
-            // loggedCacheRequests++
-            // if (loggedCacheRequests <= loggedCacheRequestsLimit) {
-            //    File("/tmp/cache-request-${String.format("%03d", loggedCacheRequests)}-$aktorIdParam").writeText(it.toMessage())
-            // }
-            val success = database.cachePut(aktorIdParam, it.bodyString(), timeToLiveInSecondsPostgres)
+            val success = database.cachePut(aktorIdParam, pageParam, pageSizeParam, it.bodyString(), timeToLiveInSecondsPostgres)
             if (success) {
                 Response(OK)
             } else {
@@ -188,10 +61,12 @@ class HenvendelseHandler(
 
     val cacheHenvendelselisteGet: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
+        val pageParam = it.query(PAGE)?.toInt() ?: 1
+        val pageSizeParam = it.query(PAGE_SIZE)?.toInt() ?: 50
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            val result = database.cacheGet(aktorIdParam)
+            val result = database.cacheGet(aktorIdParam, pageParam, pageSizeParam)
             if (result == null) {
                 Response(NO_CONTENT)
             } else {
@@ -214,7 +89,6 @@ class HenvendelseHandler(
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            // log.info { "Postgres Cache DELETE on aktorIds $aktorIdParam" }
             val aktorIds = aktorIdParam.split(",")
             aktorIds.forEach { aktorId ->
                 database.deleteCache(aktorId)
@@ -250,10 +124,12 @@ class HenvendelseHandler(
 
     val cacheProbe: HttpHandler = {
         val aktorIdParam = it.query(AKTOR_ID)
+        val pageParam = it.query(PAGE)?.toInt() ?: 1
+        val pageSizeParam = it.query(PAGE_SIZE)?.toInt() ?: 50
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
         } else {
-            val result = database.cacheGet(aktorIdParam)
+            val result = database.cacheGet(aktorIdParam, pageParam, pageSizeParam)
             if (result == null) {
                 Response(OK).body("$aktorIdParam Not in cache")
             } else {
