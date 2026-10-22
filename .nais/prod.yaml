@@ -36,7 +36,7 @@ spec:
     - "https://sf-henvendelse-db.intern.nav.no"
   gcp:
     sqlInstances:
-      - type: POSTGRES_15
+      - type: POSTGRES_18
         tier: db-custom-4-16384
         diskAutoresize: true
         autoBackupHour: 6

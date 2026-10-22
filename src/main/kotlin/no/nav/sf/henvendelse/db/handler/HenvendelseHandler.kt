@@ -1,14 +1,9 @@
 package no.nav.sf.henvendelse.db.handler
 
 import com.google.gson.Gson
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.google.gson.JsonParseException
-import com.google.gson.JsonParser
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.Metrics
 import no.nav.sf.henvendelse.db.database.DEFAULT_CACHE_VERSION
-import no.nav.sf.henvendelse.db.database.MAX_CACHE_VERSION_LENGTH
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.token.TokenValidator
 import org.http4k.core.HttpHandler
@@ -184,26 +179,9 @@ class HenvendelseHandler(
         }
     }
 
-    val migrateVersionPrimaryKeyHandler: HttpHandler = {
-        try {
-            database.migrateVersionPrimaryKey()
-            Response(OK)
-                .header("Content-Type", "text/plain; charset=utf-8")
-                .header("Cache-Control", "no-store")
-                .body("Confirmed: henvendelseliste primary key is (aktorId, page, pageSize, version).")
-        } catch (e: Exception) {
-            log.error(e) { "Failed to migrate Henvendelseliste primary key" }
-            Response(Status.INTERNAL_SERVER_ERROR)
-                .header("Cache-Control", "no-store")
-                .body("Failed to migrate primary key. Check application logs for details.")
-        }
-    }
+    private fun isValidVersion(version: String): Boolean = version.isNotBlank() && version.codePointCount(0, version.length) <= 32
 
-    private fun isValidVersion(version: String): Boolean =
-        version.isNotBlank() && version.codePointCount(0, version.length) <= MAX_CACHE_VERSION_LENGTH
-
-    private fun invalidVersionResponse(): Response =
-        Response(BAD_REQUEST).body("$VERSION must contain 1-$MAX_CACHE_VERSION_LENGTH characters and not be blank")
+    private fun invalidVersionResponse(): Response = Response(BAD_REQUEST).body("$VERSION must contain 1-32 characters and not be blank")
 
     val purgeOldHandler: HttpHandler = {
         database.purgeOld()

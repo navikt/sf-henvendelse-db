@@ -91,44 +91,6 @@ class PostgresDatabase {
         log.info { "Confirmed version column exists in Henvendelseliste" }
     }
 
-    fun migrateVersionPrimaryKey() {
-        transaction(database) {
-            exec("LOCK TABLE henvendelseliste IN ACCESS EXCLUSIVE MODE")
-            exec(
-                """
-                DO ${'$'}${'$'}
-                DECLARE
-                    key_name text;
-                    key_columns text[];
-                BEGIN
-                    SELECT c.conname, array_agg(a.attname::text ORDER BY k.ordinality)
-                    INTO key_name, key_columns
-                    FROM pg_constraint c
-                    CROSS JOIN LATERAL unnest(c.conkey) WITH ORDINALITY AS k(attnum, ordinality)
-                    JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k.attnum
-                    WHERE c.conrelid = 'henvendelseliste'::regclass AND c.contype = 'p'
-                    GROUP BY c.conname;
-
-                    IF key_columns = ARRAY['aktorid', 'page', 'pagesize', 'version'] THEN
-                        RETURN;
-                    END IF;
-                    IF key_columns IS DISTINCT FROM ARRAY['aktorid', 'page', 'pagesize'] THEN
-                        RAISE EXCEPTION 'Unexpected primary key on henvendelseliste: %', key_columns;
-                    END IF;
-
-                    EXECUTE format('ALTER TABLE henvendelseliste DROP CONSTRAINT %I', key_name);
-                    EXECUTE format(
-                        'ALTER TABLE henvendelseliste ADD CONSTRAINT %I PRIMARY KEY (aktorid, page, pagesize, version)',
-                        key_name
-                    );
-                END;
-                ${'$'}${'$'};
-                """.trimIndent(),
-            )
-        }
-        log.info { "Confirmed version is included in Henvendelseliste primary key" }
-    }
-
     data class CachedValue(
         val json: String,
         val expiresAt: LocalDateTime?,
