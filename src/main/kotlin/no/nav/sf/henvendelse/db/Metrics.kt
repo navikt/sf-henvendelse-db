@@ -18,6 +18,8 @@ object Metrics {
 
     val apiCalls: Counter = registerLabelCounter("api_calls", "ingress", "method")
 
+    val cacheCalls: Counter = registerLabelCounter("cache_calls", "method", "page", "pageSize", "version")
+
     val cacheSize: Gauge = registerGauge("cache_size")
 
     val cacheDelete = registerLabelCounter("cache_delete", "source")

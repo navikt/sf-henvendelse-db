@@ -51,6 +51,7 @@ class HenvendelseHandler(
         } else if (!isValidVersion(versionParam)) {
             invalidVersionResponse()
         } else {
+            Metrics.cacheCalls.labels("POST", pageParam.toString(), pageSizeParam.toString(), versionParam).inc()
             val success =
                 database.cachePut(aktorIdParam, pageParam, pageSizeParam, it.bodyString(), timeToLiveInSecondsPostgres, versionParam)
             if (success) {
@@ -71,6 +72,7 @@ class HenvendelseHandler(
         } else if (!isValidVersion(versionParam)) {
             invalidVersionResponse()
         } else {
+            Metrics.cacheCalls.labels("GET", pageParam.toString(), pageSizeParam.toString(), versionParam).inc()
             val result = database.cacheGet(aktorIdParam, pageParam, pageSizeParam, versionParam)
             if (result == null) {
                 Response(NO_CONTENT)
