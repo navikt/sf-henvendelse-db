@@ -54,6 +54,7 @@ class Application(
             "/internal/cache/probe" bind Method.GET to henvendelse.cacheProbe,
             "/internal/cache/clearDb" bind Method.GET to henvendelse.clearDbHandler,
             "/internal/cache/initDb" bind Method.GET to henvendelse.initDbHandler,
+            "/internal/cache/addVersion" bind Method.GET to henvendelse.addVersionColumnHandler,
             "/internal/purgeOld" bind Method.GET to henvendelse.purgeOldHandler,
         )
 

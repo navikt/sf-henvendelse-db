@@ -156,6 +156,21 @@ class HenvendelseHandler(
         Response(OK).body("Db created")
     }
 
+    val addVersionColumnHandler: HttpHandler = {
+        try {
+            database.addVersionColumn()
+            Response(OK)
+                .header("Content-Type", "text/plain; charset=utf-8")
+                .header("Cache-Control", "no-store")
+                .body("Confirmed: henvendelseliste.version exists. The cache key is unchanged.")
+        } catch (e: Exception) {
+            log.error(e) { "Failed to add version column to Henvendelseliste" }
+            Response(Status.INTERNAL_SERVER_ERROR)
+                .header("Cache-Control", "no-store")
+                .body("Failed to add version column. Check application logs for details.")
+        }
+    }
+
     val purgeOldHandler: HttpHandler = {
         database.purgeOld()
         Response(OK).body("Purged")

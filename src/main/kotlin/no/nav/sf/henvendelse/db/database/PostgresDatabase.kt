@@ -84,6 +84,13 @@ class PostgresDatabase {
         }
     }
 
+    fun addVersionColumn() {
+        transaction(database) {
+            exec("ALTER TABLE henvendelseliste ADD COLUMN IF NOT EXISTS version VARCHAR(32) NOT NULL DEFAULT 'v1'")
+        }
+        log.info { "Confirmed version column exists in Henvendelseliste" }
+    }
+
     data class CachedValue(
         val json: String,
         val expiresAt: LocalDateTime?,
