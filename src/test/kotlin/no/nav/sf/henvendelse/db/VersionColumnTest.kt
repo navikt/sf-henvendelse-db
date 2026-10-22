@@ -35,7 +35,7 @@ class VersionColumnTest {
             assertEquals(Status.OK, response.status)
             assertEquals("no-store", response.header("Cache-Control"))
             assertEquals(
-                "Confirmed: henvendelseliste.version exists. The cache key is unchanged.",
+                "Confirmed: henvendelseliste.version exists. This endpoint does not change the primary key.",
                 response.bodyString(),
             )
         }
@@ -52,6 +52,37 @@ class VersionColumnTest {
         assertEquals("no-store", response.header("Cache-Control"))
         assertEquals(
             "Failed to add version column. Check application logs for details.",
+            response.bodyString(),
+        )
+    }
+
+    @Test
+    fun `browser endpoint confirms primary key migration and permits repeated calls`() {
+        every { database.migrateVersionPrimaryKey() } returns Unit
+
+        repeat(2) {
+            val response = app(Request(Method.GET, "/internal/cache/migrateVersionPrimaryKey"))
+
+            assertEquals(Status.OK, response.status)
+            assertEquals("no-store", response.header("Cache-Control"))
+            assertEquals(
+                "Confirmed: henvendelseliste primary key is (aktorId, page, pageSize, version).",
+                response.bodyString(),
+            )
+        }
+        verify(exactly = 2) { database.migrateVersionPrimaryKey() }
+    }
+
+    @Test
+    fun `browser endpoint reports primary key migration failure`() {
+        every { database.migrateVersionPrimaryKey() } throws IllegalStateException("Database unavailable")
+
+        val response = app(Request(Method.GET, "/internal/cache/migrateVersionPrimaryKey"))
+
+        assertEquals(Status.INTERNAL_SERVER_ERROR, response.status)
+        assertEquals("no-store", response.header("Cache-Control"))
+        assertEquals(
+            "Failed to migrate primary key. Check application logs for details.",
             response.bodyString(),
         )
     }

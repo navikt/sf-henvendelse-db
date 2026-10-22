@@ -7,6 +7,8 @@ import com.google.gson.JsonParseException
 import com.google.gson.JsonParser
 import mu.KotlinLogging
 import no.nav.sf.henvendelse.db.Metrics
+import no.nav.sf.henvendelse.db.database.DEFAULT_CACHE_VERSION
+import no.nav.sf.henvendelse.db.database.MAX_CACHE_VERSION_LENGTH
 import no.nav.sf.henvendelse.db.database.PostgresDatabase
 import no.nav.sf.henvendelse.db.token.TokenValidator
 import org.http4k.core.HttpHandler
@@ -21,6 +23,7 @@ import java.io.File
 const val AKTOR_ID = "aktorId"
 const val PAGE = "page"
 const val PAGE_SIZE = "pageSize"
+const val VERSION = "version"
 
 class HenvendelseHandler(
     database: PostgresDatabase,
@@ -47,10 +50,14 @@ class HenvendelseHandler(
         val aktorIdParam = it.query(AKTOR_ID)
         val pageParam = it.query(PAGE)?.toInt() ?: 1
         val pageSizeParam = it.query(PAGE_SIZE)?.toInt() ?: 50
+        val versionParam = it.query(VERSION) ?: DEFAULT_CACHE_VERSION
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else if (!isValidVersion(versionParam)) {
+            invalidVersionResponse()
         } else {
-            val success = database.cachePut(aktorIdParam, pageParam, pageSizeParam, it.bodyString(), timeToLiveInSecondsPostgres)
+            val success =
+                database.cachePut(aktorIdParam, pageParam, pageSizeParam, it.bodyString(), timeToLiveInSecondsPostgres, versionParam)
             if (success) {
                 Response(OK)
             } else {
@@ -63,10 +70,13 @@ class HenvendelseHandler(
         val aktorIdParam = it.query(AKTOR_ID)
         val pageParam = it.query(PAGE)?.toInt() ?: 1
         val pageSizeParam = it.query(PAGE_SIZE)?.toInt() ?: 50
+        val versionParam = it.query(VERSION) ?: DEFAULT_CACHE_VERSION
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else if (!isValidVersion(versionParam)) {
+            invalidVersionResponse()
         } else {
-            val result = database.cacheGet(aktorIdParam, pageParam, pageSizeParam)
+            val result = database.cacheGet(aktorIdParam, pageParam, pageSizeParam, versionParam)
             if (result == null) {
                 Response(NO_CONTENT)
             } else {
@@ -126,10 +136,13 @@ class HenvendelseHandler(
         val aktorIdParam = it.query(AKTOR_ID)
         val pageParam = it.query(PAGE)?.toInt() ?: 1
         val pageSizeParam = it.query(PAGE_SIZE)?.toInt() ?: 50
+        val versionParam = it.query(VERSION) ?: DEFAULT_CACHE_VERSION
         if (aktorIdParam == null) {
             Response(BAD_REQUEST).body("Missing $AKTOR_ID param")
+        } else if (!isValidVersion(versionParam)) {
+            invalidVersionResponse()
         } else {
-            val result = database.cacheGet(aktorIdParam, pageParam, pageSizeParam)
+            val result = database.cacheGet(aktorIdParam, pageParam, pageSizeParam, versionParam)
             if (result == null) {
                 Response(OK).body("$aktorIdParam Not in cache")
             } else {
@@ -162,7 +175,7 @@ class HenvendelseHandler(
             Response(OK)
                 .header("Content-Type", "text/plain; charset=utf-8")
                 .header("Cache-Control", "no-store")
-                .body("Confirmed: henvendelseliste.version exists. The cache key is unchanged.")
+                .body("Confirmed: henvendelseliste.version exists. This endpoint does not change the primary key.")
         } catch (e: Exception) {
             log.error(e) { "Failed to add version column to Henvendelseliste" }
             Response(Status.INTERNAL_SERVER_ERROR)
@@ -170,6 +183,27 @@ class HenvendelseHandler(
                 .body("Failed to add version column. Check application logs for details.")
         }
     }
+
+    val migrateVersionPrimaryKeyHandler: HttpHandler = {
+        try {
+            database.migrateVersionPrimaryKey()
+            Response(OK)
+                .header("Content-Type", "text/plain; charset=utf-8")
+                .header("Cache-Control", "no-store")
+                .body("Confirmed: henvendelseliste primary key is (aktorId, page, pageSize, version).")
+        } catch (e: Exception) {
+            log.error(e) { "Failed to migrate Henvendelseliste primary key" }
+            Response(Status.INTERNAL_SERVER_ERROR)
+                .header("Cache-Control", "no-store")
+                .body("Failed to migrate primary key. Check application logs for details.")
+        }
+    }
+
+    private fun isValidVersion(version: String): Boolean =
+        version.isNotBlank() && version.codePointCount(0, version.length) <= MAX_CACHE_VERSION_LENGTH
+
+    private fun invalidVersionResponse(): Response =
+        Response(BAD_REQUEST).body("$VERSION must contain 1-$MAX_CACHE_VERSION_LENGTH characters and not be blank")
 
     val purgeOldHandler: HttpHandler = {
         database.purgeOld()

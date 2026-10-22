@@ -1,6 +1,6 @@
 # sf-henvendelse-db [<img align="right" src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="18" alt="GitHub repository" />](https://github.com/navikt/sf-henvendelse-db)
 
-En cache for henvendelser knyttet til Salesforce. Cache-nøkkelen er aktør-ID.
+En cache for henvendelser knyttet til Salesforce. Cache-nøkkelen er `(aktorId, page, pageSize, version)`.
 
 [sf-henvendelse-api-proxy](https://github.com/navikt/sf-henvendelse-api-proxy) bruker cachen til å svare på forespørsler om henvendelseslister. Når proxyen henter data fra Salesforce, oppdateres cachen med resultatet.
 

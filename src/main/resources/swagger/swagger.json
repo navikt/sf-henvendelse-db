@@ -162,7 +162,18 @@
           "cache"
         ],
         "description": "Returnerer cache av henvendelser for en aktør",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CacheVersion"
+          }
+        ],
         "responses": {
+          "204": {
+            "description": "Ingen cache for denne nøkkelen"
+          },
+          "400": {
+            "description": "Manglende aktorId eller ugyldig version"
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -184,6 +195,11 @@
           "cache"
         ],
         "description": "Lagrer henvendelseliste for en aktør",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/CacheVersion"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -198,6 +214,9 @@
           }
         },
         "responses": {
+          "400": {
+            "description": "Manglende aktorId eller ugyldig version"
+          },
           "200": {
             "description": "OK",
             "content": {
@@ -218,7 +237,7 @@
         "tags": [
           "cache"
         ],
-        "description": "Sletter henvendelseliste for en aktør",
+        "description": "Sletter alle sider og versjoner av henvendelseslisten for en aktør. Parameteren version ignoreres.",
         "responses": {
           "200": {
             "description": "OK",
@@ -255,6 +274,21 @@
     }
   ],
   "components": {
+    "parameters": {
+      "CacheVersion": {
+        "name": "version",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32,
+          "pattern": "\\S",
+          "default": "v1"
+        },
+        "description": "Versjon av API-varianten. Bruk samme verdi ved lesing og skriving. Kan ikke være tom eller bare mellomrom."
+      }
+    },
     "securitySchemes": {
       "Authorization": {
         "type": "http",
