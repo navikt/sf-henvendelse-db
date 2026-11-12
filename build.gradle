@@ -83,11 +83,6 @@ kotlin {
     jvmToolchain(21)
 }
 
-task runSyntaxDemo(type: JavaExec) {
-    main = 'Syntax_demoKt'
-    classpath = sourceSets.test.runtimeClasspath
-}
-
 tasks.named('shadowJar') {
     filesMatching('META-INF/*.kotlin_module') {
         duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.INCLUDE

@@ -82,7 +82,7 @@ fun main() {
                 // println("Additional operations on user")
             }
 
-    /**
+    /*
      * let: Executes the block of code if the object is not null, allowing safe access to the object within the block.
      * It returns the result of the lambda expression.
      *
@@ -98,7 +98,7 @@ fun main() {
         // println("$name")
     }
 
-    /**
+    /*
      * chain functions on iterables
      */
     // println((1..10).map { "Number $it" }.filter { it != "Number 1" })
